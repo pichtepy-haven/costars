@@ -13,8 +13,6 @@ import {
   useHashRoute, restoreScroll, scrollToSection, takePendingSection, goToSection, hrefFor, wentBackFromHome,
 } from './lib/router.js'
 
-const acts = agenda.filter((item) => item.type === 'act')
-
 /** Fade sections in as they scroll into view, the first time a page is seen
  *  (skipped for reduced motion and when returning to a page). */
 const seenRoutes = new Set()
@@ -44,9 +42,10 @@ const useReveal = (key) => {
   }, [key])
 }
 
-export default function App() {
+export default function App({ contentVersion = 0 }) {
   const route = useHashRoute()
-  const live = useLiveState(agenda, event)
+  const live = useLiveState(agenda, event, contentVersion)
+  const acts = agenda.filter((item) => item.type === 'act')
   const [agendaOpenId, setAgendaOpenId] = useState(() =>
     live.phase === 'live' && live.currentId ? live.currentId : DEFAULT_EXPANDED_ID,
   )
