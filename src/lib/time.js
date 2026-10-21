@@ -67,14 +67,15 @@ export const getLiveState = (agenda, event, now) => {
   return { phase, currentId: current?.id ?? null, nextId: next?.id ?? null }
 }
 
-/** Live state that refreshes every 30 seconds. */
-export const useLiveState = (agenda, event) => {
+/** Live state that refreshes every 30 seconds and whenever the content changes. */
+export const useLiveState = (agenda, event, contentVersion = 0) => {
   const compute = () => getLiveState(agenda, event, getNow(event.utcOffset))
   const [state, setState] = useState(compute)
   useEffect(() => {
+    setState(compute())
     const timer = window.setInterval(() => setState(compute()), 30000)
     return () => window.clearInterval(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [contentVersion])
   return state
 }
