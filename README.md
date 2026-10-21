@@ -6,7 +6,11 @@ link for everyone, with no log-in. On their phones they can follow the running o
 meet the performers and see where their ticket money goes.
 
 Built with **React 18 + Vite 6 + Tailwind CSS 3** (the original starter kit stack). No
-backend, no database: all content lives in one file, `src/data.js`.
+backend or database: the text is read live from a Google Sheet (section 4), with
+`src/data.js` as the built-in fallback.
+
+- Live site: **https://costars-guide.vercel.app**
+- Code: GitHub `pichtepy-haven/costars` → every commit to `main` redeploys on Vercel.
 
 > **Before launch:** open [`CONTENT-CHECKLIST.md`](CONTENT-CHECKLIST.md). It lists every
 > missing item, every fact that needs confirming and where to change it.
@@ -78,7 +82,37 @@ costars-ui-starter/
 
 ## 4. Updating content (no coding experience needed)
 
-Everything is in **`src/data.js`**. Open it in any text editor (VS Code is easiest).
+### Easiest: the Google Sheet (live, no redeploy)
+
+Text on the live site comes from the Google Sheet **“CoStars Event Guide - Live Content”**
+(https://docs.google.com/spreadsheets/d/1I2r3_1y2eZtx3FM-kw-_2IcoXnlMXibo6SOTXR8VYXU/edit).
+Edit a cell and the guide shows it within about a minute (visitors may need to refresh).
+The sheet's first tab, **How to edit**, explains every column.
+
+| Tab | What it controls |
+| --- | --- |
+| Event | Event name, date, welcome title and message, footer lines, help phone / Telegram |
+| Schedule | The running order: titles, times, descriptions, notes, host name, act intros, photos |
+| Performers | Line-up per act: names, roles, pieces, minutes, biographies, photos |
+| Etiquette | The Event Etiquette list |
+| Sponsors | Sponsor names, logos and links (section appears once a row is filled) |
+
+How it stays safe:
+- Only people you invite as **Editor** can change it. The link is “Anyone with the link can
+  view” so the website can read it, and everything in it is public on the site anyway.
+- Text is always shown as plain text, links must be `https://`, and broken rows (e.g. a
+  time like `25:99`) are ignored, so a typo can't break the site.
+- If Google is unreachable, phones show the last copy they downloaded, or else the
+  content in `src/data.js`.
+- Undo mistakes with File → Version history in Google Sheets.
+
+The code for this lives in `src/lib/sheetContent.js`; the sheet ID is in `src/lib/config.js`.
+Charity facts, colours, fonts and icons are not in the sheet (they stay in the code).
+
+### In the code: `src/data.js`
+
+The built-in content (and everything the sheet doesn't cover) is in **`src/data.js`**.
+Open it in any text editor, or edit it on github.com (pencil icon).
 
 - **Change text:** edit the words between the quotes `'…'`. Keep the quotes and the commas.
   If your text contains an apostrophe, use the curly one: `’`.
