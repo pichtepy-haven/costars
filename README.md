@@ -1,0 +1,214 @@
+# CoStars Charity Mini Concert: Event Guide
+
+The digital event guide for the **CoStars Charity Mini Concert** on **5 December 2026**.
+Guests scan the QR code on their wristband after check-in and land here. One shared
+link for everyone, with no log-in. On their phones they can follow the running order,
+meet the performers and see where their ticket money goes.
+
+Built with **React 18 + Vite 6 + Tailwind CSS 3** (the original starter kit stack). No
+backend, no database: all content lives in one file, `src/data.js`.
+
+> **Before launch:** open [`CONTENT-CHECKLIST.md`](CONTENT-CHECKLIST.md). It lists every
+> missing item, every fact that needs confirming and where to change it.
+
+---
+
+## 1. Run it on your computer
+
+Requires **Node.js 18 or newer** (https://nodejs.org).
+
+```bash
+cd costars-ui-starter
+npm install        # first time only
+npm run dev        # opens a local preview at http://localhost:5173
+```
+
+In this development preview, missing content shows as dashed yellow **“To supply: …”**
+labels so you can see what still needs adding. These labels never appear on the live site.
+
+Other commands:
+
+```bash
+npm run build      # production build → dist/
+npm run preview    # serve the production build at http://localhost:4173
+```
+
+Testing the live “Now” badge: add `?now=` to the address, in Cambodia time, e.g.
+`http://localhost:5173/?now=2026-12-05T18:20`. The Act II row is then marked **Now**,
+opened automatically, and the next item is marked **Up next**. On the real day this
+happens automatically from the phone's clock.
+
+---
+
+## 2. What's in the guide
+
+| Screen | What it shows | Design reference |
+| --- | --- | --- |
+| **Home** `#/` | Welcome banner · quick links · **Performance Schedule** (accordion, one item open at a time) · **Agenda Highlights** · **Charity Impact** · Etiquette / Sponsors / Need help / About CoStars · quote footer | UI Kit (accordion, list rows) + UI 2 (home, highlights, charity band, footer) |
+| **Act page** `#/act/act-1`, `act-2`, `act-3` | Act artwork or photo, time and duration, description, **About the Performers** (line-up from the proposal), gallery, previous/next act | UI 2 detail screens |
+| **Charity page** `#/charity` | L’aang Primary School facts, where the ticket money goes, the school's needs, photos, Vision & Mission | UI 2 “Charity Impact” screen + proposal slides 1, 3, 5, 6 |
+
+Not included on purpose: venue directions, ticket sales and other pre-event information
+(see the brief). The guide is meant for use on the night.
+
+---
+
+## 3. Project structure
+
+```
+costars-ui-starter/
+├─ index.html              page shell, fonts, social-preview tags
+├─ vite.config.js          Vite + React (+ fills in the site URL for social previews)
+├─ tailwind.config.js      colour + font tokens
+├─ vercel.json             long-term caching for built assets
+├─ public/                 files served as-is
+│  ├─ favicon.svg, apple-touch-icon.png, og-image.jpg
+│  └─ images/              ← put photos here (see public/images/README.md)
+└─ src/
+   ├─ data.js              ← ALL EVENT CONTENT (edit this)
+   ├─ App.jsx              page switching, menu, scroll handling
+   ├─ styles.css           all styling (tokens at the top)
+   ├─ lib/                 helpers: router (#/ links), time & “Now”, icons, settings
+   ├─ views/               HomeView, ActView, CharityView, NotFoundView
+   └─ components/          Hero, Schedule, AgendaItem, AgendaHighlights, StageCover,
+                           CharityImpact, MoreInfo, SiteHeader, SiteFooter, Lightbox, …
+```
+
+---
+
+## 4. Updating content (no coding experience needed)
+
+Everything is in **`src/data.js`**. Open it in any text editor (VS Code is easiest).
+
+- **Change text:** edit the words between the quotes `'…'`. Keep the quotes and the commas.
+  If your text contains an apostrophe, use the curly one: `’`.
+- **Change a time:** edit `start` / `end` (24-hour clock, e.g. `'19:25'`). The time
+  labels, durations and the “Now” badge all update from these.
+- **Reorder the schedule:** move a whole `{ … },` block up or down inside `agenda`.
+- **Add a performer biography:** fill in `bio: ''` for that performer.
+- **Add a performer's piece:** fill in `piece: ''` (shown with a ♪ icon).
+- **Missing information:** leave it as `''` or `[]`. It is hidden on the live site.
+- **Rename the host:** `host: { name: '', role: 'Event Host' }` in the welcome item.
+- **Add sponsors:** add entries to `sponsors.list`, e.g.
+  `{ name: 'Company', logo: '/images/sponsors/company.svg', url: 'https://…' }`.
+  The “Our Sponsors” section appears automatically once there is at least one.
+- **Add a help contact:** fill in `help.phone` and/or `help.telegram`.
+
+Each item in `src/data.js` has a source tag: `[P1]`–`[P6]` for the proposal slides,
+`[UI1]`/`[UI2]` for the designs, plus `TODO`/`CHECK` markers. Search for **TODO** and **CHECK**
+to find everything still open.
+
+> ⚠️ The `id` values (`'act-1'`, `'charity'`, …) appear in links. Don't change them after the
+> QR code is printed.
+
+### Replacing images and logos
+
+1. Save the photo in `public/images/…`, e.g. `public/images/acts/khmer-dance.webp`.
+   Use lowercase names without spaces, and keep files under ~300 KB (https://squoosh.app helps).
+2. Point to it in `src/data.js` with a path starting `/images/`:
+   - act photo: `image: '/images/acts/khmer-dance.webp', imageAlt: 'Dancers of the Princess Buppha Devi Dance School'`
+   - act gallery: `gallery: [{ src: '/images/acts/khmer-dance-2.webp', alt: '…' }]`
+   - performer photos: `photos: [{ src: '/images/performers/song-hui-chan.webp', alt: 'Song Hui Chan at the piano' }]`
+   - welcome banner: `welcome.image`
+3. Until a photo is added, the guide shows the branded **stage artwork** (curtain, spotlight,
+   act icon and the musicians silhouette from the proposal). That way no stock image is
+   presented as the real performers.
+
+The logo is drawn in code (`src/components/BrandMark.jsx`, Poppins Bold + star). Brand
+colours and fonts are at the top of `src/styles.css` and in `tailwind.config.js`.
+
+---
+
+## 5. Deploy to Vercel (GitHub → Vercel)
+
+### a) Put the project on GitHub
+
+Make the **`costars-ui-starter`** folder (the one with `package.json`) the repository root.
+
+```bash
+cd costars-ui-starter
+git init
+git add .
+git commit -m "CoStars event guide"
+git branch -M main
+git remote add origin https://github.com/<your-account>/costars-event-guide.git
+git push -u origin main
+```
+
+`.gitignore` already excludes `node_modules/`, `dist/` and `.env` files.
+(Or use GitHub Desktop: *Add existing repository* → choose the folder → *Publish*.)
+
+### b) Import into Vercel
+
+1. Go to https://vercel.com/new and sign in with GitHub.
+2. **Import** the `costars-event-guide` repository.
+3. Settings (Vercel normally detects these automatically):
+   - Framework preset: **Vite**
+   - Root directory: **`./`** (or `costars-ui-starter` if you pushed the parent folder instead)
+   - Build command: **`npm run build`**
+   - Output directory: **`dist`**
+   - Install command: **`npm install`**
+4. Click **Deploy**. After about a minute you get a URL like `https://costars-event-guide.vercel.app`.
+
+No routing configuration is needed: the guide uses `#/` links, so refreshing or opening
+`…/#/act/act-2` directly always works.
+
+### c) Custom domain (optional)
+
+Vercel → your project → **Settings → Domains** → add e.g. `guide.costars.org`, then follow
+the DNS instructions shown there.
+
+### d) Updating after launch
+
+Edit `src/data.js` (or add photos), then commit and push. Vercel redeploys automatically
+within a minute or two. You can also edit `src/data.js` directly on github.com
+(pencil icon → *Commit changes*).
+
+To check missing content on a deployed **preview** (not production), add the environment
+variable `VITE_SHOW_PLACEHOLDERS` = `true` for the *Preview* environment in Vercel.
+
+---
+
+## 6. The wristband QR code
+
+- Use the **production** address (`https://<project>.vercel.app` or your custom domain).
+  **Never** use a deployment-specific preview URL (those contain random characters and
+  change with each deploy).
+- Decide on the final domain **before printing**. Content can change any time
+  afterwards without reprinting.
+- Generate a **static** QR code that encodes the URL directly. Chrome's built-in
+  *Share → Create QR code* does this. Avoid “dynamic” QR codes from freemium sites:
+  they redirect through the provider and can stop working when a trial ends. Test-scan
+  the printed wristband with both iPhone and Android before printing in bulk.
+- Social previews (`og-image.jpg`) pick up the production domain automatically on
+  Vercel. On other hosts, build with `SITE_URL=https://your-domain npm run build`.
+
+---
+
+## 7. Quality notes
+
+- **Mobile-first:** checked at 320, 375, 390, 768 and 1280 px wide with no horizontal scrolling.
+- **Accessibility:** semantic headings, buttons with `aria-expanded`, keyboard support,
+  visible focus rings, skip link, alt text, AA colour contrast, `prefers-reduced-motion` honoured.
+- **Performance:** no heavy libraries. Stage artwork is CSS (no image download), photos
+  are WebP and lazy-loaded below the fold, built JS/CSS is cached long-term (`vercel.json`).
+- **Motion:** accordion height/fade, staged hero entrance, gentle section reveals, hover
+  lifts. All are switched off when the device asks for reduced motion.
+
+## Design tokens
+
+| Token | Value | Use |
+| --- | --- | --- |
+| White | `#ffffff` | — |
+| Cream | `#fcf9f2` / `#f5f4ef` | App surface / page background |
+| Paper | `#fffefa` | Cards |
+| Charcoal | `#342d2d` | Text, primary buttons, open accordion header |
+| Dark red | `#810102` | Brand accent, action buttons, icons |
+| Amber | `#d69a3c` | Break / intermission dots |
+| Logo & headings | Poppins ExtraBold 800 | CoStars logo, page and banner titles, big numbers |
+| Section titles | Poppins SemiBold 600 | Section headings, card and list item titles |
+| Body text | Cabin Regular 400 | Descriptions, times, notes, details |
+| Buttons & labels | Cabin Medium 500 | Buttons, chips, quick links, tags, small caps labels |
+
+The four weights are set once at the top of `src/styles.css` (`--fw-heading`, `--fw-title`,
+`--fw-body`, `--fw-label`), and only these weights are loaded from Google Fonts (`index.html`).

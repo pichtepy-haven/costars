@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Logs & caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+.vite/
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.local

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fcf9f2" />
+    <meta name="color-scheme" content="light" />
+    <!-- Event-day guide reached by wristband QR code: keep it out of search results. -->
+    <meta name="robots" content="noindex" />
+    <title>CoStars: Event Guide</title>
+    <meta name="description" content="The digital event guide for the CoStars Charity Mini Concert on 5 December 2026: running order, performers and where your ticket goes." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Social previews. __SITE_URL__ is filled in at build time (see vite.config.js). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoStars" />
+    <meta property="og:title" content="CoStars Charity Mini Concert: Event Guide" />
+    <meta property="og:description" content="Running order, performers and charity impact for the CoStars Charity Mini Concert." />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta property="og:image" content="__SITE_URL__/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500&family=Poppins:wght@600;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p style="padding:24px;font-family:sans-serif">Please enable JavaScript to view the CoStars event guide.</p>
+    </noscript>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
