@@ -83,7 +83,8 @@ function sendJson(res, status, body) {
 
 /** Ticket details from the bot, in the shape buildTicketSvg wants. */
 async function ticketFromBot(code) {
-  const text = await fetchText(`${BOT_API}?action=ticket&c=${encodeURIComponent(code)}`)
+  // ?code= because Apps Script reserves the parameter names c and sid.
+  const text = await fetchText(`${BOT_API}?action=ticket&code=${encodeURIComponent(code)}`)
   let info
   try {
     info = JSON.parse(text)

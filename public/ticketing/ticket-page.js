@@ -104,7 +104,7 @@ async function load({ quiet = false } = {}) {
     return render()
   }
   try {
-    const res = await apiGet({ action: 'ticket', c: code })
+    const res = await apiGet({ action: 'ticket', code })
     if (!res.ok) {
       state.error = res.error === 'not_found' || res.error === 'invalid' ? 'invalid' : 'network'
       if (!quiet || !state.data) render()

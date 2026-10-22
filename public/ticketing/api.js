@@ -33,7 +33,10 @@ async function call(url, init, timeoutMs) {
   }
 }
 
-/** Public data: ?action=info or ?action=ticket&c=<code>. Retries once on a network hiccup. */
+/**
+ * Public data: ?action=info or ?action=ticket&code=<code>. Retries once on a network hiccup.
+ * (Never name a parameter c or sid: Apps Script reserves them and answers "Page not found".)
+ */
 export async function apiGet(params, { timeoutMs = 20000 } = {}) {
   const url = new URL(apiUrl())
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
