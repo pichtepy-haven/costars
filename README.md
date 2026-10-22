@@ -52,8 +52,9 @@ happens automatically from the phone's clock.
 | **Act page** `#/act/act-1`, `act-2`, `act-3` | Act artwork or photo, time and duration, description, **About the Performers** (line-up from the proposal), gallery, previous/next act | UI 2 detail screens |
 | **Charity page** `#/charity` | L’aang Primary School facts, where the ticket money goes, the school's needs, photos, Vision & Mission | UI 2 “Charity Impact” screen + proposal slides 1, 3, 5, 6 |
 
-Not included on purpose: venue directions, ticket sales and other pre-event information
-(see the brief). The guide is meant for use on the night.
+Not included in the guide on purpose: venue directions, ticket sales and other pre-event
+information (see the brief). The guide is meant for use on the night. Ticket sales live on
+their own pages (section 6b).
 
 ---
 
@@ -64,9 +65,11 @@ costars-ui-starter/
 ├─ index.html              page shell, fonts, social-preview tags
 ├─ vite.config.js          Vite + React (+ fills in the site URL for social previews)
 ├─ tailwind.config.js      colour + font tokens
-├─ vercel.json             long-term caching for built assets
+├─ vercel.json             caching, clean URLs, /t/<code> ticket pages, image function
+├─ api/ticket-image.js     ticket picture (PNG) for the Telegram bot (section 6b)
 ├─ public/                 files served as-is
 │  ├─ favicon.svg, apple-touch-icon.png, og-image.jpg
+│  ├─ buy.html, ticket.html, admin.html, ticketing/   ticket pages (section 6b)
 │  └─ images/              ← put photos here (see public/images/README.md)
 └─ src/
    ├─ data.js              ← ALL EVENT CONTENT (edit this)
@@ -216,6 +219,52 @@ variable `VITE_SHOW_PLACEHOLDERS` = `true` for the *Preview* environment in Verc
   the printed wristband with both iPhone and Android before printing in bulk.
 - Social previews (`og-image.jpg`) pick up the production domain automatically on
   Vercel. On other hosts, build with `SITE_URL=https://your-domain npm run build`.
+
+---
+
+## 6b. Tickets: form, ticket pages and the door check point
+
+These pages work together with the CoStars Telegram bot (Google Apps Script). They are
+plain HTML + JavaScript in `public/`, so Vite copies them as they are, and they do not
+change the event guide.
+
+| Address | What it is | Opened from |
+| --- | --- | --- |
+| `/buy` | Ticket form (Standard / Group, name, phone). Sending it creates the order and the bot sends the KHQR in the chat | Bot: welcome button, 🎟 Buy tickets key, 🎟 Tickets button next to the message box |
+| `/t/<code>` | The guest's ticket page with the designed ticket, live status, Save image, Add to calendar | The QR on every ticket, and 🎫 Open my ticket under each ticket photo |
+| `/admin` | Door check point: Telegram QR scanner, live checked-in count, latest check-ins, search and check in by hand, sales for admins | Staff send `/admin` (or `/scan`) to the bot in a private chat |
+| `/api/ticket-image?c=<code>` | The designed ticket as a PNG (the bot sends this picture). `?demo=1` shows a sample | The bot, and Save image |
+
+How it fits together:
+
+```
+Customer ─ Telegram bot ─▶ /buy (form) ─▶ bot creates order ─▶ KHQR in chat ─▶ receipt photo
+Admin group: ✅ Approve + transaction ID ─▶ bot asks /api/ticket-image for each ticket ─▶ framed ticket in chat
+Ticket QR = https://costars-guide.vercel.app/t/<code>
+  • guest scans it ─▶ ticket page
+  • door staff scan it in /admin ─▶ checked in (a second scan says "Already used")
+  • staff with only a phone camera ─▶ ticket page ─▶ "Check in with Telegram" ─▶ bot checks in
+```
+
+Files:
+
+- `public/ticketing/config.js`: **`API_URL`** = the bot's web app address (Apps Script →
+  Deploy → Manage deployments, ends with `/exec`) and the bot's username.
+- `public/ticketing/ticket-svg.js`: the ticket artwork (shared by the ticket page and the PNG).
+- `public/ticketing/buy.js`, `ticket-page.js`, `admin.js`: the three pages. `app.css`, `admin.css`: their styles.
+- `api/ticket-image.js` + `api/_fonts/`: draws the PNG with resvg (`@resvg/resvg-js`).
+
+Security: nothing secret is in the website. Orders and check-ins only work from pages
+opened inside Telegram (Telegram signs every request and the bot checks the Staff tab).
+Ticket codes carry the bot's signature, so ticket pages cannot be guessed.
+
+Connecting the bot: in the bot's Google Sheet run **CoStars Bot → 4. Connect the website**
+and paste `https://costars-guide.vercel.app`. Type `OFF` there to go back to buying in the
+chat with plain QR codes.
+
+Testing on your computer: `npm run dev`, then open
+`http://localhost:5173/buy.html?api=<a test bot /exec address>` (the `api` override only
+works on localhost).
 
 ---
 
