@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/t/:code",
-      "destination": "/ticket.html"
+      "destination": "/ticket"
     }
   ],
   "functions": {
