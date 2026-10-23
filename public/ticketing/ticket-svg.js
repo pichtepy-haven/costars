@@ -257,13 +257,23 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     .join('')
   const sil = `<g transform="translate(206 168) scale(${410 / MUSICIANS.viewBox[0]})"><path fill-rule="evenodd" fill="#140605" d="${MUSICIANS.d}"/></g>`
 
+  // CoStars word mark, drawn like the event guide's (Co / St★rs): tight letters and lines, and the
+  // star in the same colour as the text. A thin outline of the same colour makes Poppins Bold read
+  // as the guide's ExtraBold in the PNG too, where only the bundled weights exist.
   const logoX = 46
+  const F = 47
+  const LS = -0.055 * F
+  const coY = 92
+  const stY = coY + 0.8 * F
+  const starSize = 0.64 * F
+  const starX = logoX + textWidth('St', 'bold', F, LS) + LS + 0.005 * F
+  const starY = stY + 0.035 * F - starSize
   const logo = `
-    <g font-family="Poppins" font-weight="700" fill="${C.ink}">
-      <text x="${logoX}" y="86" font-size="47" letter-spacing="-1">Co</text>
-      <text x="${logoX}" y="133" font-size="47" letter-spacing="-1">St</text>
-      <path transform="translate(${logoX + 45.5} 98) scale(1.42)" fill="${C.wine}" stroke="${C.wine}" stroke-width="2" stroke-linejoin="round" d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z"/>
-      <text x="${logoX + 79}" y="133" font-size="47" letter-spacing="-1">rs</text>
+    <g font-family="Poppins" font-weight="700" font-size="${F}" letter-spacing="${LS.toFixed(2)}" fill="${C.ink}" stroke="${C.ink}" stroke-width="1.2" stroke-linejoin="round">
+      <text x="${logoX}" y="${coY}">Co</text>
+      <text x="${logoX}" y="${stY.toFixed(1)}">St</text>
+      <path transform="translate(${starX.toFixed(2)} ${starY.toFixed(2)}) scale(${(starSize / 24).toFixed(4)})" stroke-width="2.2" d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z"/>
+      <text x="${(starX + starSize + 0.012 * F).toFixed(2)}" y="${stY.toFixed(1)}">rs</text>
     </g>`
 
   const titleRight = x1 - 26
@@ -335,7 +345,8 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     .join('')
   const areaY = venueY + (venueLines.length - 1) * 19 + 4
   const typeValue = group ? `Group of ${t.guests}` : 'Standard'
-  const typeSub = group ? `Guest ${t.guestNo} of ${t.guests}, one QR each` : 'One person, drink included'
+  // Several Standard tickets bought together also say which guest this QR is for.
+  const typeSub = group || t.guests > 1 ? `Guest ${t.guestNo} of ${t.guests}, one QR each` : 'One person, drink included'
   const quoteLines = wrapText(ev.quote, 'italic', 13.5, px1 - midX - 70, 3)
   const label = (x, y, text) => `<text x="${x}" y="${y}" font-family="Poppins" font-weight="500" font-size="11" letter-spacing="2" fill="${C.label}">${text}</text>`
   const details = `
