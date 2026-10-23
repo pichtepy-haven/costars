@@ -803,48 +803,6 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 .actions .btn { min-height: 50px; font-size: 14.5px; padding: 10px 12px; }
 .actions__wide { grid-column: 1 / -1; }
 
-.tips { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; }
-.tips li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
-.tips svg { flex: none; width: 19px; height: 19px; color: var(--wine); margin-top: 2px; }
-
-.links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; }
-.links a, .links button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 4px;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font-size: 13.5px;
-  text-decoration: none;
-  cursor: pointer;
-}
-.links svg { width: 16px; height: 16px; }
-.links a:hover, .links button:hover { color: var(--wine); }
-
-.staff {
-  border: 1px dashed var(--sand);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
-  background: var(--surface);
-  font-size: 13.5px;
-  color: var(--muted);
-}
-.staff summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--charcoal);
-  list-style: none;
-}
-.staff summary::-webkit-details-marker { display: none; }
-.staff summary svg { width: 18px; height: 18px; color: var(--wine); }
-.staff p { margin: 8px 0 10px; }
-
 .ticket[role='button'] { cursor: zoom-in; }
 .qr-full {
   position: fixed;
