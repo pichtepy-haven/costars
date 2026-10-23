@@ -1,11 +1,10 @@
 /**
  * Ticket page (/t/<code>). This address is what the ticket QR holds, so a guest
  * who scans their own QR lands here. Door staff check guests in from the
- * check-in page in Telegram; staff who scan with a phone camera get a button
- * that checks the guest in through the bot.
+ * check-in page in Telegram (/admin) or the staff page (/staff).
  */
 import { apiGet } from './api.js'
-import { BOT_USERNAME, botLink } from './config.js'
+import { botLink } from './config.js'
 import { buildTicketSvg } from './ticket-svg.js'
 import { encodeQR } from './qr.js'
 import { esc, fill, icon, khDigits, logoHtml, savedLang, saveLang, toast } from './ui.js'
@@ -19,21 +18,12 @@ const T = {
     checkedSub: 'Welcome! Enjoy the show 🎶',
     guestOf: 'Guest {n} of {total}',
     groupTip: 'Each person in your group has their own ticket\nSend this one to the friend it belongs to',
-    tipsTitle: 'At the door',
-    tip1: 'Turn up your screen brightness',
-    tip2: 'Have this page or the ticket photo from Telegram ready',
-    tip3: 'Doors open before the show, come a little early 😊',
     save: 'Save image',
     calendar: 'Add to calendar',
     share: 'Send to a friend',
     shareText: 'Your ticket for the CoStars Charity Mini Concert 🎟',
     copied: 'Link copied',
     bot: 'Open the bot',
-    refresh: 'Refresh',
-    updated: 'Up to date',
-    staffTitle: 'For door staff',
-    staffText: 'Scanned this with your phone camera? Check the guest in through the bot',
-    staffBtn: 'Check in with Telegram',
     notFound: 'We couldn’t find this ticket',
     notFoundSub: 'Please open the ticket again from the CoStars bot in Telegram\nTap 🎫 My tickets to see all your tickets',
     netError: 'We couldn’t load your ticket 😥',
@@ -51,21 +41,12 @@ const T = {
     checkedSub: 'សូមស្វាគមន៍! សូមរីករាយជាមួយកម្មវិធី 🎶',
     guestOf: 'ភ្ញៀវទី {n} នៃ {total}',
     groupTip: 'សមាជិកក្រុមម្នាក់ៗមានសំបុត្រផ្ទាល់ខ្លួន\nសូមផ្ញើសំបុត្រនេះទៅមិត្តភក្តិដែលជាម្ចាស់',
-    tipsTitle: 'នៅច្រកចូល',
-    tip1: 'សូមបង្កើនពន្លឺអេក្រង់',
-    tip2: 'សូមរៀបចំទំព័រនេះ ឬរូបសំបុត្រក្នុង Telegram ឲ្យរួចរាល់',
-    tip3: 'សូមមកដល់មុនម៉ោងបន្តិច 😊',
     save: 'រក្សាទុករូបភាព',
     calendar: 'បញ្ចូលក្នុងប្រតិទិន',
     share: 'ផ្ញើទៅមិត្តភក្តិ',
     shareText: 'សំបុត្ររបស់អ្នកសម្រាប់ការប្រគុំតន្ត្រីសប្បុរសធម៌ CoStars 🎟',
     copied: 'បានចម្លងតំណ',
     bot: 'បើក Bot',
-    refresh: 'ធ្វើបច្ចុប្បន្នភាព',
-    updated: 'ទាន់សម័យហើយ',
-    staffTitle: 'សម្រាប់បុគ្គលិកច្រកចូល',
-    staffText: 'ស្កេនដោយកាមេរ៉ាទូរស័ព្ទមែនទេ? សូមឲ្យភ្ញៀវចូលតាម Bot',
-    staffBtn: 'ឲ្យចូលតាម Telegram',
     notFound: 'រកមិនឃើញសំបុត្រនេះទេ',
     notFoundSub: 'សូមបើកសំបុត្រម្ដងទៀតពី CoStars Bot ក្នុង Telegram\nចុច 🎫 សំបុត្ររបស់ខ្ញុំ ដើម្បីមើលសំបុត្រទាំងអស់',
     netError: 'មិនអាចបើកសំបុត្ររបស់អ្នកបានទេ 😥',
@@ -160,7 +141,6 @@ function render() {
   const tk = d.ticket
   const checked = tk.status === 'CHECKED_IN'
   const group = tk.guests > 1
-  const bot = d.bot || BOT_USERNAME
   app.innerHTML = `
     ${topbar()}
     <div class="status ${checked ? 'status--in' : 'status--ok'} rise" role="status">
@@ -178,26 +158,7 @@ function render() {
       <button type="button" class="btn btn--light" id="cal">${icon('calendarPlus')}${esc(T[state.lang].calendar)}</button>
       ${group ? `<button type="button" class="btn btn--light actions__wide" id="share">${icon('share')}${esc(T[state.lang].share)}</button>` : ''}
     </div>
-    ${group ? `<div class="notice section">${icon('users')}<div>${br(esc(T[state.lang].groupTip))}</div></div>` : ''}
-    ${checked ? '' : `
-    <section class="section card card--pad">
-      <h2 style="font-size:15px">${esc(T[state.lang].tipsTitle)}</h2>
-      <ul class="tips">
-        <li>${icon('sun')}<span>${esc(T[state.lang].tip1)}</span></li>
-        <li>${icon('ticket')}<span>${esc(T[state.lang].tip2)}</span></li>
-        <li>${icon('clock')}<span>${esc(T[state.lang].tip3)}</span></li>
-      </ul>
-    </section>`}
-    <div class="links section">
-      <a href="https://t.me/${esc(bot)}">${icon('send')}${esc(T[state.lang].bot)}</a>
-      <button type="button" id="refresh">${icon('refresh')}${esc(T[state.lang].refresh)}</button>
-    </div>
-    ${checked ? '' : `
-    <details class="staff section">
-      <summary>${icon('door')}${esc(T[state.lang].staffTitle)}</summary>
-      <p>${esc(T[state.lang].staffText)}</p>
-      <a class="btn btn--tg btn--block" href="${botLink('t_' + d.code)}">${icon('send')}${esc(T[state.lang].staffBtn)}</a>
-    </details>`}`
+    ${group ? `<div class="notice section">${icon('users')}<div>${br(esc(T[state.lang].groupTip))}</div></div>` : ''}`
   bind()
 }
 
@@ -225,12 +186,6 @@ function bind() {
   )
   const retry = $('#retry')
   if (retry) retry.addEventListener('click', () => load())
-  const refresh = $('#refresh')
-  if (refresh) refresh.addEventListener('click', async () => {
-    refresh.disabled = true
-    await load({ quiet: true })
-    toast(T[state.lang].updated)
-  })
   const cal = $('#cal')
   if (cal) cal.addEventListener('click', addToCalendar)
   const share = $('#share')
