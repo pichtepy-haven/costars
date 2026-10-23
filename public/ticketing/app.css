@@ -144,21 +144,30 @@ h2 { font-size: 17px; font-weight: 600; }
   gap: 12px;
 }
 .logo {
+  /* The event guide's word mark: Co over St★rs, Poppins ExtraBold, charcoal, star in the same colour. */
   display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 6px 12px 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 253, 248, 0.94);
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 12px 9px;
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.95);
   color: var(--charcoal);
   font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  letter-spacing: -0.02em;
-  text-decoration: none;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 0.8;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
-.logo svg { width: 15px; height: 15px; margin: 0 0 1px; }
+.logo__line { display: block; }
+.logo__star {
+  display: inline-block;
+  width: 0.64em;
+  height: 0.64em;
+  margin: 0 0.012em 0 0.005em;
+  vertical-align: -0.035em;
+}
 .hero__title {
   margin-top: 18px;
   font-family: var(--font-display);
@@ -483,6 +492,102 @@ h2 { font-size: 17px; font-weight: 600; }
 }
 .total b { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: var(--wine); }
 .total span { font-size: 13px; color: var(--muted); }
+.total small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+
+/* how many Standard tickets */
+.qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 12px 12px 12px 16px;
+}
+.qty__text { min-width: 0; }
+.qty__text b { display: block; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 15px; color: var(--ink); }
+.qty__text span { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
+.qty__text .field__error { margin-top: 4px; }
+.qty__ctrl {
+  flex: none;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  overflow: hidden;
+}
+.qty__btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 46px;
+  border: 0;
+  background: none;
+  color: var(--wine);
+  cursor: pointer;
+}
+.qty__btn svg { width: 20px; height: 20px; }
+.qty__btn:active { background: var(--wine-tint); }
+.qty__btn:disabled { color: #cfc6bb; cursor: default; background: none; }
+.qty__input {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  text-align: center;
+  font: 700 19px/1 'Poppins', sans-serif;
+  color: var(--ink);
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.qty__input::-webkit-outer-spin-button,
+.qty__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qty__input:focus { outline: none; background: var(--wine-tint); }
+.qty__input[aria-invalid='true'] { color: var(--wine); background: var(--wine-tint); }
+
+/* the KHQR to pay, after the order */
+.khqr {
+  display: grid;
+  gap: 10px;
+  margin: 18px auto 0;
+  max-width: 340px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-align: center;
+}
+.khqr__amount { margin: 0; display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 4px 8px; }
+.khqr__amount span { font-size: 14px; color: var(--muted); }
+.khqr__amount b { font-family: 'Poppins', sans-serif; font-size: 30px; font-weight: 700; color: var(--wine); line-height: 1.1; }
+.khqr__amount small { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+.khqr__sub { margin: -4px 0 0; font-size: 13px; color: var(--muted); }
+.khqr__img {
+  margin: 2px auto 0;
+  width: min(260px, 100%);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(52, 45, 45, 0.08);
+}
+.khqr__img img { display: block; width: 100%; height: auto; }
+.khqr__fail { margin: 0; padding: 12px; border-radius: var(--radius-sm); background: var(--amber-tint); color: var(--amber-ink); font-size: 13.5px; }
+.khqr__remark {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--wine-tint);
+  text-align: left;
+}
+.khqr__remark span { display: block; font-size: 12px; color: var(--muted); }
+.khqr__remark b { display: block; font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.02em; color: var(--ink); }
 
 /* notices */
 .notice {

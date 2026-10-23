@@ -26,6 +26,7 @@ const C = {
   cream: '#FBF6EC',
   paper: '#FFFDF9',
   ink: '#2A2320',
+  charcoal: '#342D2D',
   muted: '#625A55',
   label: '#9B6A4F',
   wine: '#810102',
@@ -259,11 +260,11 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
 
   const logoX = 46
   const logo = `
-    <g font-family="Poppins" font-weight="700" fill="${C.ink}">
-      <text x="${logoX}" y="86" font-size="47" letter-spacing="-1">Co</text>
-      <text x="${logoX}" y="133" font-size="47" letter-spacing="-1">St</text>
-      <path transform="translate(${logoX + 45.5} 98) scale(1.42)" fill="${C.wine}" stroke="${C.wine}" stroke-width="2" stroke-linejoin="round" d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z"/>
-      <text x="${logoX + 79}" y="133" font-size="47" letter-spacing="-1">rs</text>
+    <g font-family="Poppins" font-weight="800" fill="${C.charcoal}">
+      <text x="${logoX}" y="86" font-size="47" letter-spacing="-2.6">Co</text>
+      <text x="${logoX}" y="124" font-size="47" letter-spacing="-2.6">St</text>
+      <path transform="translate(${logoX + 42} 94) scale(1.25)" fill="${C.charcoal}" stroke="${C.charcoal}" stroke-width="2.2" stroke-linejoin="round" d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z"/>
+      <text x="${logoX + 72}" y="124" font-size="47" letter-spacing="-2.6">rs</text>
     </g>`
 
   const titleRight = x1 - 26
@@ -335,7 +336,9 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     .join('')
   const areaY = venueY + (venueLines.length - 1) * 19 + 4
   const typeValue = group ? `Group of ${t.guests}` : 'Standard'
-  const typeSub = group ? `Guest ${t.guestNo} of ${t.guests}, one QR each` : 'One person, drink included'
+  const typeSub = group
+    ? `Guest ${t.guestNo} of ${t.guests}, one QR each`
+    : t.guests > 1 ? `Guest ${t.guestNo} of ${t.guests}, drink included` : 'One person, drink included'
   const quoteLines = wrapText(ev.quote, 'italic', 13.5, px1 - midX - 70, 3)
   const label = (x, y, text) => `<text x="${x}" y="${y}" font-family="Poppins" font-weight="500" font-size="11" letter-spacing="2" fill="${C.label}">${text}</text>`
   const details = `

@@ -175,5 +175,15 @@ export function sendData(text) {
   }
 }
 
+/** Telegram's own file download (Bot API 8.0+), so a picture can be saved to the phone. */
+export const download = {
+  available: () => inTelegram() && at('8.0') && !!(app() && app().downloadFile),
+  file(url, fileName) {
+    return new Promise((resolve) => {
+      try { app().downloadFile({ url, file_name: fileName }, (accepted) => resolve(!!accepted)) } catch { resolve(false) }
+    })
+  },
+}
+
 export const platform = () => (app() && app().platform) || 'unknown'
 export const languageCode = () => (tgUser() && tgUser().language_code) || ''

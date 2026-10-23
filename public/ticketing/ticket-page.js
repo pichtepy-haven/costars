@@ -125,7 +125,7 @@ async function load({ quiet = false } = {}) {
 function topbar() {
   return `
     <div class="topbar">
-      ${logoHtml('/')}
+      ${logoHtml()}
       <div class="lang lang--light" role="group" aria-label="Language">
         <button type="button" data-lang="en" aria-pressed="${state.lang === 'en'}">EN</button>
         <button type="button" data-lang="km" aria-pressed="${state.lang === 'km'}">ខ្មែរ</button>
@@ -191,7 +191,6 @@ function render() {
       </ul>
     </section>`}
     <div class="links section">
-      <a href="/">${icon('book')}${esc(T[state.lang].guide)}</a>
       <a href="https://t.me/${esc(bot)}">${icon('send')}${esc(T[state.lang].bot)}</a>
       <button type="button" id="refresh">${icon('refresh')}${esc(T[state.lang].refresh)}</button>
     </div>
