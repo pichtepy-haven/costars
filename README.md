@@ -63,7 +63,7 @@ their own pages (section 6b).
 ```
 costars-ui-starter/
 ├─ index.html              page shell, fonts, social-preview tags
-├─ vite.config.js          Vite + React (+ fills in the site URL for social previews)
+├─ vite.config.js          Vite + React: guide (/) + staff page (/staff), site URL for previews
 ├─ tailwind.config.js      colour + font tokens
 ├─ vercel.json             caching, clean URLs, /t/<code> ticket pages, image function
 ├─ api/ticket-image.js     ticket picture (PNG) for the Telegram bot (section 6b)
@@ -71,6 +71,7 @@ costars-ui-starter/
 │  ├─ favicon.svg, apple-touch-icon.png, og-image.jpg
 │  ├─ buy.html, ticket.html, admin.html, ticketing/   ticket pages (section 6b)
 │  └─ images/              ← put photos here (see public/images/README.md)
+├─ staff.html + staff/     staff check-in page /staff (section 6c)
 └─ src/
    ├─ data.js              ← ALL EVENT CONTENT (edit this)
    ├─ App.jsx              page switching, menu, scroll handling
@@ -265,6 +266,46 @@ chat with plain QR codes.
 Testing on your computer: `npm run dev`, then open
 `http://localhost:5173/buy.html?api=<a test bot /exec address>` (the `api` override only
 works on localhost).
+
+---
+
+## 6c. Staff check-in page: `/staff` (preview)
+
+**https://costars-guide.vercel.app/staff**: the *Event Staff Login* screen from the
+*Ticket and Staff Check-In* mockup, for door staff using an ordinary phone browser (no
+Telegram needed). It isn't linked from the guide and is kept out of search results. React,
+like the guide: `staff.html` + `staff/`. It does not change the guide or the ticket pages.
+
+Flow at the door:
+
+1. **Log in** with Staff ID + password. The login stays on that phone for 18 hours or until *Log out*.
+2. **Scan** the ticket QR with the phone camera, or type the code if the QR won't scan. A QR
+   holding a link (like `…/t/<code>`) works too: the code is taken from the link.
+3. **See the result over the camera view:**
+   - ✅ *Checked in*: holder, ticket type, code. Scanning resumes by itself after about 2.5 s.
+   - ⚠️ *Already checked in*: the time and the staff member who checked it in.
+   - ❌ *Ticket not found*, or *Ticket not valid* (cancelled / refunded).
+   - *Not sent*, if there's no connection, with a *Try again* button.
+4. **Undo** your own check-in for up to 15 minutes, from the result or *Recent scans on this phone*.
+5. A live counter shows *Checked in X of Y* across all doors.
+
+**Status: preview mode.** Not connected to the ticket database yet. It runs with four sample
+tickets inside the browser (Staff ID `DEMO`, password `costars-demo`) and sends or saves
+nothing. To connect it, set `CHECKIN_API_URL` in `staff/config.js` (or the Vercel variable
+`VITE_CHECKIN_API_URL`). The page expects these actions, all as POST with a text/plain JSON body:
+
+| Action | Sends | Gets back |
+| --- | --- | --- |
+| `login` | `staffId`, `password` | `token`, `staff {id, name}`, `expiresAt`, `stats {total, checkedIn}` |
+| `checkin` | `token`, `code` (the scanned text) | `result` (`checked_in` / `already_checked_in` / `not_found` / `not_valid`), `ticket {code, holder, type, order, status, checkedInAt, checkedInBy}`, `stats` |
+| `undo` | `token`, `code` | `result: "undone"`, `stats` |
+| `stats` | `token` | `staff`, `stats` |
+
+Errors come back as `{ ok: false, error }` with `missing`, `invalid`, `locked` (+ `minutes`),
+`unauthorized`, `busy` or `undo_not_allowed`.
+
+Camera: the phone's built-in QR reader where there is one (Android Chrome). Otherwise, e.g. on
+iPhone, the `jsqr` package (Apache-2.0), which is downloaded only on those phones.
 
 ---
 

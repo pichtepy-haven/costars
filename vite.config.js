@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -20,4 +21,14 @@ export default defineConfig({
       transformIndexHtml: (html) => html.replaceAll('__SITE_URL__', siteUrl),
     },
   ],
+  build: {
+    rollupOptions: {
+      // Two React pages: the guest guide (/) and staff check-in (/staff, see staff/).
+      // The ticket pages in public/ (buy, ticket, admin) are copied as they are.
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        staff: fileURLToPath(new URL('./staff.html', import.meta.url)),
+      },
+    },
+  },
 })
