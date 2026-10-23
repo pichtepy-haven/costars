@@ -67,6 +67,7 @@ costars-ui-starter/
 ├─ tailwind.config.js      colour + font tokens
 ├─ vercel.json             caching, clean URLs, /t/<code> ticket pages, image function
 ├─ api/ticket-image.js     ticket picture (PNG) for the Telegram bot (section 6b)
+├─ api/khqr.js             payment KHQR picture shown on the ticket form (section 6b)
 ├─ public/                 files served as-is
 │  ├─ favicon.svg, apple-touch-icon.png, og-image.jpg
 │  ├─ buy.html, ticket.html, admin.html, ticketing/   ticket pages (section 6b)
@@ -231,15 +232,16 @@ change the event guide.
 
 | Address | What it is | Opened from |
 | --- | --- | --- |
-| `/buy` | Ticket form (Standard / Group, name, phone). Sending it creates the order and the bot sends the KHQR in the chat | Bot: welcome button, 🎟 Buy tickets key, 🎟 Tickets button next to the message box |
+| `/buy` | Ticket form (Standard with how many tickets, or Group; name, phone). Sending it creates the order; the page then shows the order number, the amount and the KHQR to pay, and the bot sends the KHQR in the chat too | Bot: welcome button, 🎟 Buy tickets key, 🎟 Tickets button next to the message box |
 | `/t/<code>` | The guest's ticket page with the designed ticket, live status, Save image, Add to calendar | The QR on every ticket, and 🎫 Open my ticket under each ticket photo |
 | `/admin` | Door check point: Telegram QR scanner, live checked-in count, latest check-ins, search and check in by hand, sales for admins | Staff send `/admin` (or `/scan`) to the bot in a private chat |
 | `/api/ticket-image?c=<code>` | The designed ticket as a PNG (the bot sends this picture). `?demo=1` shows a sample | The bot, and Save image |
+| `/api/khqr` | The ticket KHQR as a picture (`?download=1` saves it as CoStars-KHQR.jpg) | The ticket form after ordering, and Save QR |
 
 How it fits together:
 
 ```
-Customer ─ Telegram bot ─▶ /buy (form) ─▶ bot creates order ─▶ KHQR in chat ─▶ receipt photo
+Customer ─ Telegram bot ─▶ /buy (form) ─▶ bot creates order ─▶ KHQR on the page and in chat ─▶ receipt photo
 Admin group: ✅ Approve + transaction ID ─▶ bot asks /api/ticket-image for each ticket ─▶ framed ticket in chat
 Ticket QR = https://costars-guide.vercel.app/t/<code>
   • guest scans it ─▶ ticket page
@@ -254,6 +256,7 @@ Files:
 - `public/ticketing/ticket-svg.js`: the ticket artwork (shared by the ticket page and the PNG).
 - `public/ticketing/buy.js`, `ticket-page.js`, `admin.js`: the three pages. `app.css`, `admin.css`: their styles.
 - `api/ticket-image.js` + `api/_fonts/`: draws the PNG with resvg (`@resvg/resvg-js`).
+- `api/khqr.js`: the ticket KHQR as a picture for the form (from the bot's `?action=khqr`, the photo set with `/setkhqr ticket`). Cached by Vercel for 5 minutes.
 
 Security: nothing secret is in the website. Orders and check-ins only work from pages
 opened inside Telegram (Telegram signs every request and the bot checks the Staff tab).

@@ -3,7 +3,8 @@
  *
  *  • From a button in the chat or the 🎟 Tickets button: Telegram signs the
  *    launch (initData), so the form loads the customer's details and sends the
- *    order straight to the bot. The bot then sends the KHQR to the chat.
+ *    order straight to the bot. The page then shows the payment KHQR
+ *    (/api/khqr), and the bot sends it to the chat too.
  *  • From the 🎟 key under the chat: there is no signature, so the form hands
  *    its answers to Telegram (sendData) and the bot replies in the chat.
  *  • In a normal browser: the page shows the tickets and a button to open the bot.
@@ -11,7 +12,10 @@
 import { apiGet, apiPost } from './api.js'
 import { botLink } from './config.js'
 import * as tg from './tg.js'
-import { HERO_WAVE, esc, fill, icon, khDigits, logoHtml, money, nonce, riel, savedLang, saveLang, toast } from './ui.js'
+import { HERO_WAVE, copyText, esc, fill, icon, khDigits, logoHtml, money, nonce, riel, savedLang, saveLang, toast } from './ui.js'
+
+/** The ticket KHQR as a picture (api/khqr.js turns the bot's copy into an image address). */
+const KHQR_URL = '/api/khqr'
 
 const T = {
   en: {
@@ -21,7 +25,15 @@ const T = {
     subtitle: 'Every ticket helps buy school supplies for children in need 💛',
     step1: 'Choose your ticket',
     indName: 'Standard',
-    indDesc: '1 person, drink included',
+    indDesc: 'Per person, drink included',
+    qtyLabel: 'How many tickets?',
+    qtyHint: 'Each person gets their own QR',
+    qtyLess: 'One ticket less',
+    qtyMore: 'One ticket more',
+    qtyMax: 'You can buy up to {max} tickets at a time',
+    badQty: 'Please choose 1 to {max} tickets',
+    nameHintMany: 'This name goes on all {n} tickets',
+    totalOf: '{n} tickets × {price}',
     grpName: 'Group of {size}',
     grpDesc: '{size} people, drinks included\nEveryone gets their own QR',
     save: 'Save {amount}',
@@ -47,6 +59,7 @@ const T = {
     step3: 'How you pay',
     pay1: 'Tap {button} below',
     pay2: 'Pay with KHQR in the chat and write your order number in the remark',
+    pay2Here: 'Scan the KHQR that shows up on this page and write your order number in the remark',
     pay3: 'Send a photo of your receipt in the chat',
     pay4: 'Your QR ticket arrives in Telegram 🎟',
     total: 'Total',
@@ -65,11 +78,23 @@ const T = {
     soldOutAll: 'Tickets are sold out 😢',
     soldOutSub: 'You can still help the children: tap 💝 Donate in the bot',
     doneTitle: 'Order {order} is ready 🎉',
-    doneSent: 'We sent the payment KHQR to your chat',
-    done1: 'Open the chat with the CoStars bot',
+    doneScan: 'Scan this KHQR with your bank app to pay',
+    doneNoQr: 'We sent the payment KHQR to your chat',
+    doneSent: 'We also sent this KHQR to your chat',
+    orderNo: 'Order number',
+    toPay: 'Amount to pay',
+    tickets: 'Tickets',
+    copy: 'Copy',
+    copied: 'Order number copied',
+    copyFail: 'Your order number is {order}',
+    saveQr: 'Save QR',
+    qrAlt: 'KHQR code to pay for your CoStars tickets',
+    qrError: 'The QR couldn’t load here\nYou’ll also find it in your chat with the bot',
+    done1: 'Scan this KHQR, or save it and open it in your bank app',
     done2: 'Pay {amount} and write {order} in the remark',
     done3: 'Send a photo of your receipt in the chat',
-    doneGo: 'Go to the chat to pay',
+    done4: 'Your QR tickets arrive in the chat 🎟',
+    doneGo: 'Send my receipt in the chat',
     notSent: 'We couldn’t message you yet\nOpen the bot, tap Start, then tap 🎫 My tickets to see the payment QR',
     openBot: 'Open the CoStars bot',
     browserTitle: 'Tickets are sold in Telegram',
@@ -80,7 +105,6 @@ const T = {
     retry: 'Try again',
     already: 'Your order was already sent\nPlease check the chat for the payment QR',
     help: 'Questions? Tap 📞 Contact in the bot',
-    guide: 'See the event guide',
     prices: 'Ticket prices',
     thanksTitle: 'Thank you!',
     thanksSub: 'You’re helping children get the school supplies they need 💛',
@@ -92,7 +116,15 @@ const T = {
     subtitle: 'សំបុត្រនីមួយៗជួយទិញសម្ភារៈសិក្សាជូនកុមារដែលខ្វះខាត 💛',
     step1: 'ជ្រើសរើសសំបុត្រ',
     indName: 'ស្តង់ដារ',
-    indDesc: '១ នាក់ រួមទាំងភេសជ្ជៈ',
+    indDesc: 'តម្លៃក្នុងម្នាក់ រួមទាំងភេសជ្ជៈ',
+    qtyLabel: 'តើអ្នកចង់បានសំបុត្រប៉ុន្មានសន្លឹក?',
+    qtyHint: 'ម្នាក់ៗទទួលបាន QR ផ្ទាល់ខ្លួន',
+    qtyLess: 'បន្ថយមួយសន្លឹក',
+    qtyMore: 'បន្ថែមមួយសន្លឹក',
+    qtyMax: 'អ្នកអាចទិញបានច្រើនបំផុត {max} សន្លឹកក្នុងមួយដង',
+    badQty: 'សូមជ្រើសរើសសំបុត្រពី ១ ដល់ {max} សន្លឹក',
+    nameHintMany: 'ឈ្មោះនេះនឹងបង្ហាញនៅលើសំបុត្រទាំង {n} សន្លឹក',
+    totalOf: '{n} សន្លឹក × {price}',
     grpName: 'ក្រុម {size} នាក់',
     grpDesc: '{size} នាក់ រួមទាំងភេសជ្ជៈ\nម្នាក់ៗទទួលបាន QR ផ្ទាល់ខ្លួន',
     save: 'សន្សំបាន {amount}',
@@ -118,6 +150,7 @@ const T = {
     step3: 'របៀបបង់ប្រាក់',
     pay1: 'ចុច {button} ខាងក្រោម',
     pay2: 'បង់ប្រាក់តាម KHQR ក្នុងការជជែក ហើយសរសេរលេខបញ្ជាទិញក្នុងប្រអប់ចំណាំ',
+    pay2Here: 'ស្កេន KHQR ដែលនឹងបង្ហាញនៅលើទំព័រនេះ ហើយសរសេរលេខបញ្ជាទិញក្នុងប្រអប់ចំណាំ',
     pay3: 'ផ្ញើរូបថតបង្កាន់ដៃក្នុងការជជែក',
     pay4: 'សំបុត្រ QR របស់អ្នកនឹងផ្ញើមកក្នុង Telegram 🎟',
     total: 'សរុប',
@@ -136,11 +169,23 @@ const T = {
     soldOutAll: 'សំបុត្រលក់អស់ហើយ 😢',
     soldOutSub: 'អ្នកនៅតែអាចជួយកុមារបាន៖ ចុច 💝 បរិច្ចាគ ក្នុង Bot',
     doneTitle: 'ការបញ្ជាទិញ {order} រួចរាល់ហើយ 🎉',
-    doneSent: 'យើងបានផ្ញើ KHQR សម្រាប់បង់ប្រាក់ទៅក្នុងការជជែករបស់អ្នកហើយ',
-    done1: 'បើកការជជែកជាមួយ CoStars Bot',
+    doneScan: 'ស្កេន KHQR នេះជាមួយកម្មវិធីធនាគាររបស់អ្នក ដើម្បីបង់ប្រាក់',
+    doneNoQr: 'យើងបានផ្ញើ KHQR សម្រាប់បង់ប្រាក់ទៅក្នុងការជជែករបស់អ្នកហើយ',
+    doneSent: 'យើងក៏បានផ្ញើ KHQR នេះទៅក្នុងការជជែករបស់អ្នកដែរ',
+    orderNo: 'លេខបញ្ជាទិញ',
+    toPay: 'ចំនួនទឹកប្រាក់ត្រូវបង់',
+    tickets: 'សំបុត្រ',
+    copy: 'ចម្លង',
+    copied: 'បានចម្លងលេខបញ្ជាទិញ',
+    copyFail: 'លេខបញ្ជាទិញរបស់អ្នកគឺ {order}',
+    saveQr: 'រក្សាទុក QR',
+    qrAlt: 'KHQR សម្រាប់បង់ប្រាក់សំបុត្រ CoStars',
+    qrError: 'មិនអាចបង្ហាញ QR នៅទីនេះបានទេ\nអ្នកក៏អាចរកវាឃើញក្នុងការជជែកជាមួយ Bot ដែរ',
+    done1: 'ស្កេន KHQR នេះ ឬរក្សាទុកវា ហើយបើកក្នុងកម្មវិធីធនាគាររបស់អ្នក',
     done2: 'បង់ {amount} ហើយសរសេរ {order} ក្នុងប្រអប់ចំណាំ',
     done3: 'ផ្ញើរូបថតបង្កាន់ដៃក្នុងការជជែក',
-    doneGo: 'ទៅកាន់ការជជែកដើម្បីបង់ប្រាក់',
+    done4: 'សំបុត្រ QR របស់អ្នកនឹងផ្ញើមកក្នុងការជជែក 🎟',
+    doneGo: 'ផ្ញើបង្កាន់ដៃក្នុងការជជែក',
     notSent: 'យើងមិនទាន់អាចផ្ញើសារទៅអ្នកបានទេ\nសូមបើក Bot ចុច Start រួចចុច 🎫 សំបុត្ររបស់ខ្ញុំ ដើម្បីមើល QR បង់ប្រាក់',
     openBot: 'បើក CoStars Bot',
     browserTitle: 'សំបុត្រលក់តាម Telegram',
@@ -151,7 +196,6 @@ const T = {
     retry: 'ព្យាយាមម្ដងទៀត',
     already: 'ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើរួចហើយ\nសូមពិនិត្យ QR បង់ប្រាក់ក្នុងការជជែក',
     help: 'មានសំណួរ? ចុច 📞 ទំនាក់ទំនង ក្នុង Bot',
-    guide: 'មើលមគ្គុទ្ទេសក៍កម្មវិធី',
     prices: 'តម្លៃសំបុត្រ',
     thanksTitle: 'សូមអរគុណ!',
     thanksSub: 'អ្នកកំពុងជួយឲ្យកុមារមានសម្ភារៈសិក្សាដែលពួកគេត្រូវការ 💛',
@@ -168,6 +212,7 @@ const state = {
   langFixed: /^(en|km)$/.test(params.get('lang') || ''),
   info: null,
   type: '',
+  qty: 1, // Standard tickets in this order
   name: '',
   phone: '',
   prefilled: false,
@@ -195,6 +240,17 @@ function prices() {
   return p
 }
 const priceOf = (type) => (type === 'GROUP' ? prices().group : prices().individual)
+
+/** Most Standard tickets in one order (Settings → max_standard in the bot's sheet, 10 by default). */
+function maxQty() {
+  const m = Math.floor(Number(state.info && state.info.maxStandard))
+  return m >= 1 ? Math.min(m, 99) : 10
+}
+/** How many tickets this order is for: the chosen number for Standard, one ticket for a Group. */
+const qtyOf = (type) => (type === 'GROUP' ? 1 : state.qty)
+/** What the order costs: a Group ticket, or the Standard price times the number of tickets. */
+const orderAmount = (type) => Math.round(priceOf(type) * qtyOf(type) * 100) / 100
+
 const amountText = (amount) => {
   const r = riel(amount, prices().khrRate)
   return money(amount, prices().symbol) + (r ? ` ${T[state.lang].or} ${r}` : '')
@@ -232,7 +288,18 @@ async function load() {
   const onSale = (type) => !!type && info.salesOpen && (type === 'GROUP' ? info.canGroup : info.canIndividual)
   if (MODE === 'browser') state.type = ''
   else if (!onSale(state.type)) state.type = onSale('INDIVIDUAL') ? 'INDIVIDUAL' : onSale('GROUP') ? 'GROUP' : ''
+  state.qty = Math.min(Math.max(state.qty, 1), maxQty())
   render()
+  // Fetch the payment QR while the customer fills in the form, so it shows at once after ordering.
+  if (MODE === 'api' && info.khqr) preloadKhqr()
+}
+
+let khqrPreload = null
+function preloadKhqr() {
+  if (khqrPreload) return
+  khqrPreload = new Image()
+  khqrPreload.decoding = 'async'
+  khqrPreload.src = KHQR_URL
 }
 
 /* ------------------------------------------------------------- views */
@@ -252,7 +319,7 @@ function heroHtml(done = false) {
     <header class="hero">
       <div class="hero__sil"></div>
       <div class="hero__top">
-        ${logoHtml('/')}
+        ${logoHtml('', 'light')}
         <div class="lang" role="group" aria-label="Language">
           <button type="button" data-lang="en" aria-pressed="${state.lang === 'en'}">EN</button>
           <button type="button" data-lang="km" aria-pressed="${state.lang === 'km'}">ខ្មែរ</button>
@@ -307,6 +374,27 @@ function choiceHtml(type) {
     </${tag}>`
 }
 
+/** Under the Standard ticket: how many tickets. Typed in or changed with − and +. */
+function qtyHtml() {
+  const max = maxQty()
+  const err = state.errors.qty
+  return `
+    <div class="qty" role="group" aria-labelledby="qty-label">
+      <div class="qty__text">
+        <span class="qty__label" id="qty-label">${esc(T[state.lang].qtyLabel)}</span>
+        <span class="qty__hint" id="qty-hint">${esc(T[state.lang].qtyHint)}</span>
+      </div>
+      <div class="stepper" id="stepper" aria-invalid="${!!err}">
+        <button type="button" class="stepper__btn" data-step="-1" aria-label="${esc(T[state.lang].qtyLess)}" ${state.qty <= 1 ? 'disabled' : ''}>${icon('minus')}</button>
+        <input class="stepper__input" id="qty" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" enterkeyhint="done"
+          role="spinbutton" aria-valuemin="1" aria-valuemax="${max}" aria-valuenow="${state.qty}" aria-labelledby="qty-label" aria-describedby="qty-hint"
+          value="${state.qty}" />
+        <button type="button" class="stepper__btn" data-step="1" aria-label="${esc(T[state.lang].qtyMore)}" ${state.qty >= max ? 'disabled' : ''}>${icon('plus')}</button>
+      </div>
+      ${err ? `<span class="field__error qty__error" role="alert">${esc(err)}</span>` : ''}
+    </div>`
+}
+
 function noticesHtml() {
   const info = state.info
   const out = []
@@ -352,7 +440,7 @@ function formHtml() {
           <span class="field__label" id="name-label">${esc(T[state.lang][group ? 'nameGrp' : 'nameInd'])}</span>
           <input class="input" id="name" name="name" autocomplete="name" maxlength="80" enterkeyhint="next"
             placeholder="${esc(T[state.lang].namePh)}" value="${esc(state.name)}" aria-invalid="${!!err.name}" aria-describedby="name-hint" />
-          ${err.name ? `<span class="field__error" role="alert">${esc(err.name)}</span>` : `<span class="field__hint" id="name-hint">${esc(T[state.lang][group ? 'nameHintGrp' : 'nameHintInd'])}</span>`}
+          ${err.name ? `<span class="field__error" role="alert">${esc(err.name)}</span>` : `<span class="field__hint" id="name-hint">${esc(nameHint())}</span>`}
         </label>
         <label class="field">
           <span class="field__label">${esc(T[state.lang].phone)}</span>
@@ -367,9 +455,23 @@ function formHtml() {
     </section>`
 }
 
-function payHtml() {
-  const amount = priceOf(state.type || 'INDIVIDUAL')
+function nameHint() {
+  if (state.type === 'GROUP') return T[state.lang].nameHintGrp
+  return state.qty > 1 ? t('nameHintMany', { n: n(state.qty) }) : T[state.lang].nameHintInd
+}
+
+/** Inside #total: the amount, its riel price, and "3 tickets × $8" for several Standard tickets. */
+function totalInner() {
+  const type = state.type || 'INDIVIDUAL'
+  const amount = orderAmount(type)
   const r = riel(amount, prices().khrRate)
+  const many = type !== 'GROUP' && state.qty > 1
+  return `
+    <span>${esc(T[state.lang].total)}${many ? `<small class="total__of">${t('totalOf', { n: n(state.qty), price: money(priceOf(type), prices().symbol) })}</small>` : ''}</span>
+    <div style="text-align:right"><b>${esc(money(amount, prices().symbol))}</b>${r ? `<br><span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</div>`
+}
+
+function payHtml() {
   const buttonName = `<b>${esc(T[state.lang].confirmShort)}</b>`
   return `
     <section class="section">
@@ -377,14 +479,11 @@ function payHtml() {
       <div class="card card--pad">
         <ol class="steps">
           <li>${fill(T[state.lang].pay1, {}).replace('{button}', buttonName)}</li>
-          <li>${esc(T[state.lang].pay2)}</li>
+          <li>${esc(T[state.lang][MODE === 'api' && state.info.khqr ? 'pay2Here' : 'pay2'])}</li>
           <li>${esc(T[state.lang].pay3)}</li>
           <li>${esc(T[state.lang].pay4)}</li>
         </ol>
-        <div class="total" id="total">
-          <span>${esc(T[state.lang].total)}</span>
-          <div style="text-align:right"><b>${esc(money(amount, prices().symbol))}</b>${r ? `<br><span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</div>
-        </div>
+        <div class="total" id="total" aria-live="polite">${totalInner()}</div>
       </div>
       <p class="notice notice--plain" style="margin-top:10px">${icon('info')}<span>${esc(T[state.lang].noCancel)}</span></p>
     </section>`
@@ -401,7 +500,7 @@ function browserCtaHtml() {
 }
 
 function footerHtml() {
-  return `<p class="footer-note">${esc(T[state.lang].help)}<br><a href="/">${esc(T[state.lang].guide)}</a></p>`
+  return `<p class="footer-note">${esc(T[state.lang].help)}</p>`
 }
 
 function render() {
@@ -412,6 +511,7 @@ function render() {
   const info = state.info
   const open = info.salesOpen && (info.canIndividual || info.canGroup)
   const canBuyHere = MODE !== 'browser'
+  const showQty = canBuyHere && info.salesOpen && info.canIndividual && state.type === 'INDIVIDUAL'
   app.innerHTML = `
     ${heroHtml()}
     ${factsHtml()}
@@ -423,6 +523,7 @@ function render() {
         : `<div class="section__head">${icon('ticket', 'style="width:22px;height:22px;color:#810102"')}<h2>${esc(T[state.lang].prices)}</h2></div>`}
       <div class="choices ${canBuyHere ? '' : 'choices--static'}" ${canBuyHere ? 'role="radiogroup"' : ''} aria-label="${esc(T[state.lang][canBuyHere ? 'step1' : 'prices'])}">
         ${choiceHtml('INDIVIDUAL')}
+        ${showQty ? qtyHtml() : ''}
         ${choiceHtml('GROUP')}
       </div>
     </section>
@@ -449,31 +550,113 @@ function renderLoadError() {
   bindLang()
 }
 
+/**
+ * After ordering: the order number, the amount and the payment KHQR right on the page,
+ * then where to send the receipt. Without a KHQR set in the bot, the steps point to the chat.
+ */
 function renderDone() {
   const d = state.done
   tg.closingConfirmation(false)
-  const amount = d.amountText || amountText(d.amount)
+  // Worked out here (not taken from the bot's answer) so it follows the language switch on this page.
+  const amount = amountText(d.amount)
+  const p = prices()
+  const r = riel(d.amount, p.khrRate)
+  const showQr = d.khqr !== false
+  const guests = Number(d.guests) || 1
+  const ticketLabel = d.type === 'GROUP' ? t('grpName', { size: n(guests) }) : guests > 1 ? `${T[state.lang].indName} × ${n(guests)}` : T[state.lang].indName
+  // The order number never breaks across two lines in the steps.
+  const keepOrder = (html) => html.split(esc(d.order)).join(`<span class="nowrap">${esc(d.order)}</span>`)
   app.innerHTML = `
     ${heroHtml(true)}
-    <div class="state card rise" style="margin-top:-36px;position:relative">
-      <div class="state__icon state__icon--green pop">${icon('check')}</div>
-      <h2>${t('doneTitle', { order: d.order })}</h2>
-      ${d.sent ? `<p>${esc(T[state.lang].doneSent)}</p>` : `<p class="notice" style="text-align:left;margin-top:12px">${lines(esc(T[state.lang].notSent))}</p>`}
-      <ol class="steps" style="text-align:left;margin:18px auto 0;max-width:360px">
-        <li>${esc(T[state.lang].done1)}</li>
-        <li>${t('done2', { amount, order: d.order })}</li>
+    <section class="pay card rise" aria-labelledby="pay-title">
+      <div class="pay__head">
+        <div class="state__icon state__icon--green pop">${icon('check')}</div>
+        <h2 id="pay-title">${keepOrder(t('doneTitle', { order: d.order }))}</h2>
+        <p>${esc(T[state.lang][showQr ? 'doneScan' : 'doneNoQr'])}</p>
+      </div>
+      <dl class="pay__facts">
+        <div class="pay__fact">
+          <dt>${esc(T[state.lang].orderNo)}</dt>
+          <dd><b class="pay__order">${esc(d.order)}</b>
+            <button type="button" class="chip-btn" id="copy-order" aria-label="${esc(T[state.lang].copy)} ${esc(d.order)}">${icon('copy')}${esc(T[state.lang].copy)}</button></dd>
+        </div>
+        <div class="pay__fact">
+          <dt>${esc(T[state.lang].toPay)}</dt>
+          <dd><b class="pay__amount">${esc(money(d.amount, p.symbol))}</b>${r ? `<span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</dd>
+        </div>
+        <div class="pay__fact">
+          <dt>${esc(T[state.lang].tickets)}</dt>
+          <dd><span class="pay__ticket">${esc(ticketLabel)}</span></dd>
+        </div>
+      </dl>
+      ${showQr ? `
+      <figure class="khqr">
+        <div class="khqr__frame is-loading" id="khqr-frame">
+          <img id="khqr-img" src="${KHQR_URL}" alt="${esc(T[state.lang].qrAlt)}" decoding="async" />
+          <p class="khqr__error" hidden>${icon('alert')}<span>${lines(esc(T[state.lang].qrError))}</span></p>
+        </div>
+      </figure>
+      <a class="btn btn--light btn--block" id="save-qr" href="${KHQR_URL}?download=1" download="CoStars-KHQR.jpg">${icon('download')}${esc(T[state.lang].saveQr)}</a>` : ''}
+      <ol class="steps pay__steps">
+        ${showQr ? `<li>${esc(T[state.lang].done1)}</li>` : ''}
+        <li>${keepOrder(t('done2', { amount, order: d.order }))}</li>
         <li>${esc(T[state.lang].done3)}</li>
+        <li>${esc(T[state.lang].done4)}</li>
       </ol>
+      ${d.sent ? (showQr ? `<p class="pay__note">${icon('send')}<span>${esc(T[state.lang].doneSent)}</span></p>` : '')
+               : `<p class="notice">${icon('info')}<span>${lines(esc(T[state.lang].notSent))}</span></p>`}
       ${tg.mainButton.available() ? '' : `<a class="btn btn--block btn--big" href="${botLink()}">${icon('send')}${esc(T[state.lang][d.sent ? 'doneGo' : 'openBot'])}</a>`}
-    </div>
+    </section>
     ${footerHtml()}`
   bindLang()
+  bindDone()
   tg.mainButton.progress(false)
   tg.mainButton.set({
     text: T[state.lang][d.sent ? 'doneGo' : 'openBot'],
     onClick: () => (d.sent ? tg.close() : tg.openTelegramLink(botLink())),
     shine: true,
   })
+}
+
+function bindDone() {
+  const d = state.done
+  const copy = $('#copy-order')
+  if (copy) {
+    copy.addEventListener('click', async () => {
+      const ok = await copyText(d.order)
+      tg.haptic(ok ? 'success' : 'warning')
+      toast(ok ? T[state.lang].copied : t('copyFail', { order: d.order }))
+    })
+  }
+  const img = $('#khqr-img')
+  if (img) {
+    const frame = $('#khqr-frame')
+    const shown = () => frame.classList.remove('is-loading')
+    const failed = () => {
+      frame.classList.remove('is-loading')
+      frame.classList.add('is-error')
+      img.hidden = true
+      frame.querySelector('.khqr__error').hidden = false
+      const save = $('#save-qr')
+      if (save) save.hidden = true
+    }
+    if (img.complete) (img.naturalWidth ? shown : failed)()
+    else {
+      img.addEventListener('load', shown, { once: true })
+      img.addEventListener('error', failed, { once: true })
+    }
+  }
+  const save = $('#save-qr')
+  if (save) {
+    // Inside Telegram a download link does nothing: use Telegram's download sheet, or open the picture to save it.
+    save.addEventListener('click', (e) => {
+      if (!tg.inTelegram()) return
+      e.preventDefault()
+      e.stopPropagation()
+      const url = new URL(save.getAttribute('href'), location.href).href
+      if (!tg.downloadFile(url, 'CoStars-KHQR.jpg')) tg.openLink(new URL(KHQR_URL, location.href).href)
+    })
+  }
 }
 
 /* ------------------------------------------------------------- behaviour */
@@ -519,6 +702,7 @@ function bind() {
       render()
     }),
   )
+  bindQty()
   const name = $('#name')
   const phone = $('#phone')
   if (name) {
@@ -555,6 +739,67 @@ function bind() {
   if (submit) submit.addEventListener('click', onSubmit)
 }
 
+/** The − / + buttons and the number box under the Standard ticket. */
+function bindQty() {
+  const input = $('#qty')
+  if (!input) return
+  app.querySelectorAll('.stepper__btn').forEach((b) =>
+    b.addEventListener('click', () => {
+      setQty(state.qty + Number(b.dataset.step))
+      tg.haptic('select')
+    }),
+  )
+  input.addEventListener('input', () => {
+    const digits = input.value.replace(/\D/g, '').slice(0, 2)
+    if (digits !== input.value) input.value = digits
+    if (!digits) return // still typing: keep the last number until they finish
+    const wanted = Number(digits)
+    if (wanted > maxQty()) {
+      toast(t('qtyMax', { max: n(maxQty()) }))
+      return setQty(maxQty())
+    }
+    if (wanted >= 1) setQty(wanted, { keepInput: true })
+  })
+  input.addEventListener('blur', () => {
+    if (input.value !== String(state.qty)) setQty(state.qty)
+  })
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault()
+      setQty(state.qty + (e.key === 'ArrowUp' ? 1 : -1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      input.blur()
+    }
+  })
+}
+
+/** Sets the number of Standard tickets and updates the box, the buttons, the total and the name hint in place. */
+function setQty(value, { keepInput = false } = {}) {
+  const max = maxQty()
+  state.qty = Math.min(Math.max(Math.floor(Number(value)) || 1, 1), max)
+  const input = $('#qty')
+  if (input) {
+    if (!keepInput) input.value = String(state.qty)
+    input.setAttribute('aria-valuenow', String(state.qty))
+    const [less, more] = app.querySelectorAll('.stepper__btn')
+    if (less) less.disabled = state.qty <= 1
+    if (more) more.disabled = state.qty >= max
+  }
+  if (state.errors.qty) {
+    state.errors.qty = ''
+    const stepper = $('#stepper')
+    if (stepper) stepper.setAttribute('aria-invalid', 'false')
+    const errEl = app.querySelector('.qty__error')
+    if (errEl) errEl.remove()
+  }
+  const total = $('#total')
+  if (total) total.innerHTML = totalInner()
+  const hint = $('#name-hint')
+  if (hint) hint.textContent = nameHint()
+  updateButton()
+}
+
 function clearError(field) {
   state.errors[field] = ''
   const input = $('#' + field)
@@ -575,7 +820,7 @@ function updateButton() {
     tg.mainButton.hide()
     return
   }
-  const amount = state.type ? money(priceOf(state.type), prices().symbol) : ''
+  const amount = state.type ? money(orderAmount(state.type), prices().symbol) : ''
   const text = state.busy ? T[state.lang].sending : state.type ? t('confirm', { amount }) : T[state.lang].confirmShort
   const used = tg.mainButton.set({ text, onClick: onSubmit, active: !state.busy })
   tg.mainButton.progress(state.busy)
@@ -590,15 +835,17 @@ async function onSubmit() {
   if (state.busy || state.done) return
   const errors = {}
   if (!state.type) errors.type = T[state.lang].pickTicket
+  const qty = qtyOf(state.type)
+  if (state.type === 'INDIVIDUAL' && !(Number.isInteger(qty) && qty >= 1 && qty <= maxQty())) errors.qty = t('badQty', { max: n(maxQty()) })
   const name = cleanName(state.name)
   const phone = cleanPhone(state.phone)
   if (!name) errors.name = T[state.lang].badName
   if (!phone) errors.phone = T[state.lang].badPhone
-  if (errors.type || errors.name || errors.phone) {
+  if (errors.type || errors.qty || errors.name || errors.phone) {
     state.errors = errors
     tg.haptic('error')
     render()
-    const first = errors.type ? null : $(errors.name ? '#name' : '#phone')
+    const first = errors.type ? null : $(errors.qty ? '#qty' : errors.name ? '#name' : '#phone')
     if (first) {
       first.focus()
       first.scrollIntoView({ block: 'center', behavior: 'smooth' })
@@ -606,9 +853,10 @@ async function onSubmit() {
     return
   }
   // The same answers keep the same nonce, so retrying after a lost answer never makes two orders.
-  const key = [state.type, name, phone, state.lang].join('|')
+  const key = [state.type, qty, name, phone, state.lang].join('|')
   if (!state.attempt || state.attempt.key !== key) state.attempt = { key, nonce: nonce() }
   const order = { action: 'order', type: state.type, name, phone, lang: state.lang, nonce: state.attempt.nonce }
+  if (state.type === 'INDIVIDUAL') order.qty = qty
 
   if (MODE === 'keyboard') {
     tg.haptic('success')
@@ -638,11 +886,11 @@ async function onSubmit() {
   }
   updateButton()
   tg.haptic('error')
-  if (res && (res.error === 'bad_name' || res.error === 'bad_phone')) {
-    state.errors = { [res.error === 'bad_name' ? 'name' : 'phone']: res.message.replace(/\s*🙏$/, '') }
+  if (res && (res.error === 'bad_name' || res.error === 'bad_phone' || res.error === 'bad_qty')) {
+    state.errors = { [res.error === 'bad_name' ? 'name' : res.error === 'bad_qty' ? 'qty' : 'phone']: res.message.replace(/\s*🙏$/, '') }
     return render()
   }
-  if (res && (res.error === 'group_gone' || res.error === 'sold_out' || res.error === 'sales_closed')) {
+  if (res && (res.error === 'group_gone' || res.error === 'sold_out' || res.error === 'sales_closed' || res.error === 'not_enough')) {
     await tg.showAlert(res.message)
     return load()
   }

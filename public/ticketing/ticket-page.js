@@ -28,7 +28,6 @@ const T = {
     share: 'Send to a friend',
     shareText: 'Your ticket for the CoStars Charity Mini Concert 🎟',
     copied: 'Link copied',
-    guide: 'Event guide',
     bot: 'Open the bot',
     refresh: 'Refresh',
     updated: 'Up to date',
@@ -61,7 +60,6 @@ const T = {
     share: 'ផ្ញើទៅមិត្តភក្តិ',
     shareText: 'សំបុត្ររបស់អ្នកសម្រាប់ការប្រគុំតន្ត្រីសប្បុរសធម៌ CoStars 🎟',
     copied: 'បានចម្លងតំណ',
-    guide: 'មគ្គុទ្ទេសក៍កម្មវិធី',
     bot: 'បើក Bot',
     refresh: 'ធ្វើបច្ចុប្បន្នភាព',
     updated: 'ទាន់សម័យហើយ',
@@ -125,7 +123,7 @@ async function load({ quiet = false } = {}) {
 function topbar() {
   return `
     <div class="topbar">
-      ${logoHtml('/')}
+      ${logoHtml()}
       <div class="lang lang--light" role="group" aria-label="Language">
         <button type="button" data-lang="en" aria-pressed="${state.lang === 'en'}">EN</button>
         <button type="button" data-lang="km" aria-pressed="${state.lang === 'km'}">ខ្មែរ</button>
@@ -191,7 +189,6 @@ function render() {
       </ul>
     </section>`}
     <div class="links section">
-      <a href="/">${icon('book')}${esc(T[state.lang].guide)}</a>
       <a href="https://t.me/${esc(bot)}">${icon('send')}${esc(T[state.lang].bot)}</a>
       <button type="button" id="refresh">${icon('refresh')}${esc(T[state.lang].refresh)}</button>
     </div>
