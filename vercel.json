@@ -11,6 +11,9 @@
     "api/ticket-image.js": {
       "includeFiles": "api/_fonts/**",
       "maxDuration": 30
+    },
+    "api/khqr.js": {
+      "maxDuration": 30
     }
   },
   "headers": [
