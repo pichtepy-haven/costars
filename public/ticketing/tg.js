@@ -175,5 +175,20 @@ export function sendData(text) {
   }
 }
 
+/**
+ * Saves a file to the phone with Telegram's own download sheet (Telegram 8.0+), because
+ * links with a download attribute do nothing inside Telegram. Returns false when it isn't available.
+ */
+export function downloadFile(url, fileName) {
+  const w = app()
+  if (!w || !inTelegram() || !at('8.0') || typeof w.downloadFile !== 'function') return false
+  try {
+    w.downloadFile({ url, file_name: fileName })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export const platform = () => (app() && app().platform) || 'unknown'
 export const languageCode = () => (tgUser() && tgUser().language_code) || ''
