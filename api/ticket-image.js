@@ -10,6 +10,7 @@
  * (Apps Script ?action=ticket) and nobody can make a picture of another ticket.
  * The drawing is the same one the ticket page shows (public/ticketing/ticket-svg.js).
  */
+import { existsSync } from 'node:fs'
 import { access, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -19,7 +20,9 @@ import { API_URL, SITE_URL } from '../public/ticketing/config.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const FONT_DIR = join(HERE, '_fonts')
-const POPPINS = ['Poppins-Regular.ttf', 'Poppins-Medium.ttf', 'Poppins-Bold.ttf', 'Poppins-Italic.ttf'].map((f) => join(FONT_DIR, f))
+const POPPINS = ['Poppins-Regular.ttf', 'Poppins-Medium.ttf', 'Poppins-Bold.ttf', 'Poppins-ExtraBold.ttf', 'Poppins-Italic.ttf']
+  .map((f) => join(FONT_DIR, f))
+  .filter((p) => existsSync(p))
 const BOT_API = process.env.COSTARS_API_URL || API_URL
 const CODE = /^(\d{4,6}-\d{1,2})_([A-Za-z0-9_-]{12})$/
 const KHMER = /[ក-៿᧠-᧿]/

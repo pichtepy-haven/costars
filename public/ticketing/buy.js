@@ -3,7 +3,8 @@
  *
  *  • From a button in the chat or the 🎟 Tickets button: Telegram signs the
  *    launch (initData), so the form loads the customer's details and sends the
- *    order straight to the bot. The bot then sends the KHQR to the chat.
+ *    order straight to the bot. The page then shows the KHQR to pay (the bot
+ *    also sends it to the chat).
  *  • From the 🎟 key under the chat: there is no signature, so the form hands
  *    its answers to Telegram (sendData) and the bot replies in the chat.
  *  • In a normal browser: the page shows the tickets and a button to open the bot.
@@ -11,7 +12,7 @@
 import { apiGet, apiPost } from './api.js'
 import { botLink } from './config.js'
 import * as tg from './tg.js'
-import { HERO_WAVE, esc, fill, icon, khDigits, logoHtml, money, nonce, riel, savedLang, saveLang, toast } from './ui.js'
+import { HERO_WAVE, copyText, esc, fill, icon, khDigits, logoHtml, money, nonce, riel, savedLang, saveLang, toast } from './ui.js'
 
 const T = {
   en: {
@@ -34,6 +35,7 @@ const T = {
     nameGrp: 'Group name',
     nameHintInd: 'This name goes on your ticket',
     nameHintGrp: 'One name for the whole group is enough',
+    nameHintMany: 'This name goes on all {n} tickets',
     namePh: 'e.g. Sok Dara',
     phone: 'Phone number',
     phoneHint: 'So our team can reach you if needed',
@@ -44,9 +46,15 @@ const T = {
     badName: 'Please type a name with 2 to 60 letters',
     badPhone: 'Please type 8 to 15 digits, like 012 345 678',
     pickTicket: 'Please choose a ticket first',
+    qtyLabel: 'How many tickets?',
+    qtyHint: '{price} each, up to {max} tickets',
+    qtyLess: 'One ticket less',
+    qtyMore: 'One ticket more',
+    badQty: 'Please choose 1 to {max} tickets',
+    qtyBreak: '{n} tickets × {price}',
     step3: 'How you pay',
     pay1: 'Tap {button} below',
-    pay2: 'Pay with KHQR in the chat and write your order number in the remark',
+    pay2: 'Scan the KHQR on the next screen and write your order number in the remark',
     pay3: 'Send a photo of your receipt in the chat',
     pay4: 'Your QR ticket arrives in Telegram 🎟',
     total: 'Total',
@@ -70,6 +78,22 @@ const T = {
     done2: 'Pay {amount} and write {order} in the remark',
     done3: 'Send a photo of your receipt in the chat',
     doneGo: 'Go to the chat to pay',
+    payNow: 'Pay',
+    payScan: 'Scan this KHQR with your bank app',
+    remark: 'Write this in the remark',
+    copy: 'Copy',
+    copied: 'Copied {order}',
+    saveQr: 'Save the KHQR',
+    savedQr: 'Saved 👍',
+    khqr1: 'Scan or save this KHQR and pay {amount} in your bank app',
+    khqr2: 'Write {order} in the remark',
+    khqr3: 'Send a photo of your receipt in the chat with the bot',
+    khqr4: 'Your QR ticket arrives in Telegram 🎟',
+    khqrAlso: 'The same KHQR is also in your chat with the bot',
+    khqrFail: 'The KHQR didn’t load here\nYou’ll find it in your chat with the bot',
+    goReceipt: 'Go to the chat to send the receipt',
+    showKhqr: 'Show the payment KHQR',
+    khqrAlt: 'KHQR to pay CoStars',
     notSent: 'We couldn’t message you yet\nOpen the bot, tap Start, then tap 🎫 My tickets to see the payment QR',
     openBot: 'Open the CoStars bot',
     browserTitle: 'Tickets are sold in Telegram',
@@ -80,7 +104,6 @@ const T = {
     retry: 'Try again',
     already: 'Your order was already sent\nPlease check the chat for the payment QR',
     help: 'Questions? Tap 📞 Contact in the bot',
-    guide: 'See the event guide',
     prices: 'Ticket prices',
     thanksTitle: 'Thank you!',
     thanksSub: 'You’re helping children get the school supplies they need 💛',
@@ -105,6 +128,7 @@ const T = {
     nameGrp: 'ឈ្មោះក្រុម',
     nameHintInd: 'ឈ្មោះនេះនឹងបង្ហាញនៅលើសំបុត្ររបស់អ្នក',
     nameHintGrp: 'ឈ្មោះតែមួយសម្រាប់ក្រុមទាំងមូលគឺគ្រប់គ្រាន់ហើយ',
+    nameHintMany: 'ឈ្មោះនេះនឹងបង្ហាញនៅលើសំបុត្រទាំង {n} សន្លឹក',
     namePh: 'ឧ. សុខ ដារ៉ា',
     phone: 'លេខទូរស័ព្ទ',
     phoneHint: 'ដើម្បីឲ្យក្រុមការងារអាចទាក់ទងអ្នកបាន ពេលចាំបាច់',
@@ -115,9 +139,15 @@ const T = {
     badName: 'សូមវាយឈ្មោះដែលមានពី ២ ដល់ ៦០ តួអក្សរ',
     badPhone: 'សូមវាយលេខពី ៨ ដល់ ១៥ ខ្ទង់ ឧទាហរណ៍ 012 345 678',
     pickTicket: 'សូមជ្រើសរើសសំបុត្រជាមុនសិន',
+    qtyLabel: 'ចំនួនសំបុត្រ',
+    qtyHint: 'សន្លឹកមួយ {price} ទិញបានដល់ {max} សន្លឹក',
+    qtyLess: 'ដកមួយសន្លឹក',
+    qtyMore: 'បន្ថែមមួយសន្លឹក',
+    badQty: 'សូមជ្រើសរើសសំបុត្រពី ១ ដល់ {max} សន្លឹក',
+    qtyBreak: 'សំបុត្រ {n} សន្លឹក × {price}',
     step3: 'របៀបបង់ប្រាក់',
     pay1: 'ចុច {button} ខាងក្រោម',
-    pay2: 'បង់ប្រាក់តាម KHQR ក្នុងការជជែក ហើយសរសេរលេខបញ្ជាទិញក្នុងប្រអប់ចំណាំ',
+    pay2: 'ស្កេន KHQR នៅអេក្រង់បន្ទាប់ ហើយសរសេរលេខបញ្ជាទិញក្នុងប្រអប់ចំណាំ',
     pay3: 'ផ្ញើរូបថតបង្កាន់ដៃក្នុងការជជែក',
     pay4: 'សំបុត្រ QR របស់អ្នកនឹងផ្ញើមកក្នុង Telegram 🎟',
     total: 'សរុប',
@@ -141,6 +171,22 @@ const T = {
     done2: 'បង់ {amount} ហើយសរសេរ {order} ក្នុងប្រអប់ចំណាំ',
     done3: 'ផ្ញើរូបថតបង្កាន់ដៃក្នុងការជជែក',
     doneGo: 'ទៅកាន់ការជជែកដើម្បីបង់ប្រាក់',
+    payNow: 'បង់',
+    payScan: 'ស្កេន KHQR នេះជាមួយកម្មវិធីធនាគាររបស់អ្នក',
+    remark: 'សរសេរលេខនេះក្នុងប្រអប់ចំណាំ',
+    copy: 'ចម្លង',
+    copied: 'បានចម្លង {order}',
+    saveQr: 'រក្សាទុក KHQR',
+    savedQr: 'បានរក្សាទុក 👍',
+    khqr1: 'ស្កេន ឬរក្សាទុក KHQR នេះ ហើយបង់ {amount} ក្នុងកម្មវិធីធនាគារ',
+    khqr2: 'សរសេរ {order} ក្នុងប្រអប់ចំណាំ',
+    khqr3: 'ផ្ញើរូបថតបង្កាន់ដៃក្នុងការជជែកជាមួយ Bot',
+    khqr4: 'សំបុត្រ QR របស់អ្នកនឹងផ្ញើមកក្នុង Telegram 🎟',
+    khqrAlso: 'KHQR ដដែលនេះក៏មាននៅក្នុងការជជែកជាមួយ Bot ដែរ',
+    khqrFail: 'មិនអាចបង្ហាញ KHQR នៅទីនេះបានទេ\nសូមមើលវានៅក្នុងការជជែកជាមួយ Bot',
+    goReceipt: 'ទៅកាន់ការជជែកដើម្បីផ្ញើបង្កាន់ដៃ',
+    showKhqr: 'បង្ហាញ KHQR សម្រាប់បង់ប្រាក់',
+    khqrAlt: 'KHQR សម្រាប់បង់ប្រាក់ជូន CoStars',
     notSent: 'យើងមិនទាន់អាចផ្ញើសារទៅអ្នកបានទេ\nសូមបើក Bot ចុច Start រួចចុច 🎫 សំបុត្ររបស់ខ្ញុំ ដើម្បីមើល QR បង់ប្រាក់',
     openBot: 'បើក CoStars Bot',
     browserTitle: 'សំបុត្រលក់តាម Telegram',
@@ -151,7 +197,6 @@ const T = {
     retry: 'ព្យាយាមម្ដងទៀត',
     already: 'ការបញ្ជាទិញរបស់អ្នកត្រូវបានផ្ញើរួចហើយ\nសូមពិនិត្យ QR បង់ប្រាក់ក្នុងការជជែក',
     help: 'មានសំណួរ? ចុច 📞 ទំនាក់ទំនង ក្នុង Bot',
-    guide: 'មើលមគ្គុទ្ទេសក៍កម្មវិធី',
     prices: 'តម្លៃសំបុត្រ',
     thanksTitle: 'សូមអរគុណ!',
     thanksSub: 'អ្នកកំពុងជួយឲ្យកុមារមានសម្ភារៈសិក្សាដែលពួកគេត្រូវការ 💛',
@@ -168,6 +213,7 @@ const state = {
   langFixed: /^(en|km)$/.test(params.get('lang') || ''),
   info: null,
   type: '',
+  qty: 1,
   name: '',
   phone: '',
   prefilled: false,
@@ -195,6 +241,10 @@ function prices() {
   return p
 }
 const priceOf = (type) => (type === 'GROUP' ? prices().group : prices().individual)
+/** Most Standard tickets in one order (the bot's max_standard setting, fewer when seats run out). */
+const maxQty = () => Math.max(1, Number(state.info && state.info.maxStandard) || 10)
+const qtyOf = (type) => (type === 'GROUP' ? 1 : state.qty)
+const totalOf = (type) => priceOf(type) * qtyOf(type)
 const amountText = (amount) => {
   const r = riel(amount, prices().khrRate)
   return money(amount, prices().symbol) + (r ? ` ${T[state.lang].or} ${r}` : '')
@@ -230,6 +280,7 @@ async function load() {
   }
   // Pick a ticket that is still on sale (nothing is picked on the browser page, where it is only a price list).
   const onSale = (type) => !!type && info.salesOpen && (type === 'GROUP' ? info.canGroup : info.canIndividual)
+  state.qty = Math.min(Math.max(1, state.qty), maxQty())
   if (MODE === 'browser') state.type = ''
   else if (!onSale(state.type)) state.type = onSale('INDIVIDUAL') ? 'INDIVIDUAL' : onSale('GROUP') ? 'GROUP' : ''
   render()
@@ -252,7 +303,7 @@ function heroHtml(done = false) {
     <header class="hero">
       <div class="hero__sil"></div>
       <div class="hero__top">
-        ${logoHtml('/')}
+        ${logoHtml()}
         <div class="lang" role="group" aria-label="Language">
           <button type="button" data-lang="en" aria-pressed="${state.lang === 'en'}">EN</button>
           <button type="button" data-lang="km" aria-pressed="${state.lang === 'km'}">ខ្មែរ</button>
@@ -317,7 +368,9 @@ function noticesHtml() {
   }
   if (info.open && info.salesOpen) {
     const key = info.open.status === 'AWAITING_PAYMENT' ? 'openWaiting' : 'openChecking'
-    out.push(`<div class="notice rise">${icon(key === 'openWaiting' ? 'hourglass' : 'receipt')}<div>${lines(t(key, { order: info.open.order, amount: info.open.amountText || '' }))}</div></div>`)
+    const showPay = key === 'openWaiting' && info.khqr && MODE === 'api'
+    out.push(`<div class="notice rise">${icon(key === 'openWaiting' ? 'hourglass' : 'receipt')}<div>${lines(t(key, { order: info.open.order, amount: info.open.amountText || '' }))}${
+      showPay ? `<br><button type="button" class="btn btn--light btn--small" id="show-khqr" style="margin-top:8px">${icon('qr')}${esc(T[state.lang].showKhqr)}</button>` : ''}</div></div>`)
   }
   if (state.prefilled) out.push(`<div class="notice notice--green rise">${icon('heart')}<div>${esc(T[state.lang].welcomeBack)}</div></div>`)
   return out.length ? `<div class="section" style="display:grid;gap:10px">${out.join('')}</div>` : ''
@@ -340,6 +393,29 @@ function ownedHtml() {
     </section>`
 }
 
+function nameHint() {
+  if (state.type === 'GROUP') return esc(T[state.lang].nameHintGrp)
+  return state.qty > 1 ? t('nameHintMany', { n: n(state.qty) }) : esc(T[state.lang].nameHintInd)
+}
+
+/** How many Standard tickets: − 1 + with a box to type the number. */
+function qtyHtml() {
+  const max = maxQty()
+  const err = state.errors.qty
+  return `
+    <div class="qty card rise" id="qty-box">
+      <label class="qty__text" for="qty">
+        <b>${esc(T[state.lang].qtyLabel)}</b>
+        ${err ? `<span class="field__error" role="alert">${esc(err)}</span>` : `<span>${t('qtyHint', { price: money(prices().individual, prices().symbol), max: n(max) })}</span>`}
+      </label>
+      <div class="qty__ctrl">
+        <button type="button" class="qty__btn" data-step="-1" aria-label="${esc(T[state.lang].qtyLess)}" ${state.qty <= 1 ? 'disabled' : ''}>${icon('minus')}</button>
+        <input class="qty__input" id="qty" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="${max}" step="1" value="${state.qty}" aria-invalid="${!!err}" />
+        <button type="button" class="qty__btn" data-step="1" aria-label="${esc(T[state.lang].qtyMore)}" ${state.qty >= max ? 'disabled' : ''}>${icon('plus')}</button>
+      </div>
+    </div>`
+}
+
 function formHtml() {
   const group = state.type === 'GROUP'
   const err = state.errors
@@ -352,7 +428,7 @@ function formHtml() {
           <span class="field__label" id="name-label">${esc(T[state.lang][group ? 'nameGrp' : 'nameInd'])}</span>
           <input class="input" id="name" name="name" autocomplete="name" maxlength="80" enterkeyhint="next"
             placeholder="${esc(T[state.lang].namePh)}" value="${esc(state.name)}" aria-invalid="${!!err.name}" aria-describedby="name-hint" />
-          ${err.name ? `<span class="field__error" role="alert">${esc(err.name)}</span>` : `<span class="field__hint" id="name-hint">${esc(T[state.lang][group ? 'nameHintGrp' : 'nameHintInd'])}</span>`}
+          ${err.name ? `<span class="field__error" role="alert">${esc(err.name)}</span>` : `<span class="field__hint" id="name-hint">${nameHint()}</span>`}
         </label>
         <label class="field">
           <span class="field__label">${esc(T[state.lang].phone)}</span>
@@ -367,9 +443,16 @@ function formHtml() {
     </section>`
 }
 
-function payHtml() {
-  const amount = priceOf(state.type || 'INDIVIDUAL')
+function totalInner() {
+  const type = state.type || 'INDIVIDUAL'
+  const amount = totalOf(type)
   const r = riel(amount, prices().khrRate)
+  const breakdown = type !== 'GROUP' && state.qty > 1 ? `<small>${t('qtyBreak', { n: n(state.qty), price: money(prices().individual, prices().symbol) })}</small>` : ''
+  return `<span>${esc(T[state.lang].total)}${breakdown}</span>
+          <div style="text-align:right"><b>${esc(money(amount, prices().symbol))}</b>${r ? `<br><span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</div>`
+}
+
+function payHtml() {
   const buttonName = `<b>${esc(T[state.lang].confirmShort)}</b>`
   return `
     <section class="section">
@@ -381,10 +464,7 @@ function payHtml() {
           <li>${esc(T[state.lang].pay3)}</li>
           <li>${esc(T[state.lang].pay4)}</li>
         </ol>
-        <div class="total" id="total">
-          <span>${esc(T[state.lang].total)}</span>
-          <div style="text-align:right"><b>${esc(money(amount, prices().symbol))}</b>${r ? `<br><span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</div>
-        </div>
+        <div class="total" id="total">${totalInner()}</div>
       </div>
       <p class="notice notice--plain" style="margin-top:10px">${icon('info')}<span>${esc(T[state.lang].noCancel)}</span></p>
     </section>`
@@ -401,7 +481,7 @@ function browserCtaHtml() {
 }
 
 function footerHtml() {
-  return `<p class="footer-note">${esc(T[state.lang].help)}<br><a href="/">${esc(T[state.lang].guide)}</a></p>`
+  return `<p class="footer-note">${esc(T[state.lang].help)}</p>`
 }
 
 function render() {
@@ -425,6 +505,7 @@ function render() {
         ${choiceHtml('INDIVIDUAL')}
         ${choiceHtml('GROUP')}
       </div>
+      ${open && canBuyHere && state.type === 'INDIVIDUAL' ? qtyHtml() : ''}
     </section>
     ${open && canBuyHere ? formHtml() + payHtml() : ''}
     ${open && !canBuyHere ? browserCtaHtml() : ''}
@@ -449,31 +530,87 @@ function renderLoadError() {
   bindLang()
 }
 
+/** The KHQR picture, served by the website from the bot (v changes when an admin sets a new KHQR). */
+const khqrUrl = (download) => `/api/khqr?v=${encodeURIComponent((state.info && state.info.khqr) || '')}${download ? '&download=1' : ''}`
+
+function khqrHtml(d) {
+  const p = prices()
+  const r = riel(d.amount, p.khrRate)
+  return `
+    <div class="khqr rise" style="animation-delay:.05s">
+      <p class="khqr__amount"><span>${esc(T[state.lang].payNow)}</span><b>${esc(money(d.amount, p.symbol))}</b>${r ? `<small>${esc(T[state.lang].or)} ${esc(r)}</small>` : ''}</p>
+      <p class="khqr__sub">${esc(T[state.lang].payScan)}</p>
+      <div class="khqr__img"><img src="${khqrUrl(false)}" alt="${esc(T[state.lang].khqrAlt)}" id="khqr-img" /></div>
+      <p class="khqr__fail" id="khqr-fail" hidden>${lines(esc(T[state.lang].khqrFail))}</p>
+      <div class="khqr__remark">
+        <div><span>${esc(T[state.lang].remark)}</span><b>${esc(d.order)}</b></div>
+        <button type="button" class="btn btn--light btn--small" id="copy-order">${icon('copy')}${esc(T[state.lang].copy)}</button>
+      </div>
+      <button type="button" class="btn btn--light btn--block" id="save-khqr">${icon('download')}${esc(T[state.lang].saveQr)}</button>
+    </div>`
+}
+
 function renderDone() {
   const d = state.done
   tg.closingConfirmation(false)
   const amount = d.amountText || amountText(d.amount)
+  const showKhqr = !!(state.info && state.info.khqr) && d.sent
   app.innerHTML = `
     ${heroHtml(true)}
     <div class="state card rise" style="margin-top:-36px;position:relative">
       <div class="state__icon state__icon--green pop">${icon('check')}</div>
       <h2>${t('doneTitle', { order: d.order })}</h2>
-      ${d.sent ? `<p>${esc(T[state.lang].doneSent)}</p>` : `<p class="notice" style="text-align:left;margin-top:12px">${lines(esc(T[state.lang].notSent))}</p>`}
+      ${d.ticket ? `<p class="muted">${esc(d.ticket)}</p>` : ''}
+      ${showKhqr ? khqrHtml(d) : d.sent ? `<p>${esc(T[state.lang].doneSent)}</p>` : `<p class="notice" style="text-align:left;margin-top:12px">${lines(esc(T[state.lang].notSent))}</p>`}
       <ol class="steps" style="text-align:left;margin:18px auto 0;max-width:360px">
-        <li>${esc(T[state.lang].done1)}</li>
-        <li>${t('done2', { amount, order: d.order })}</li>
-        <li>${esc(T[state.lang].done3)}</li>
+        ${showKhqr
+          ? `<li>${t('khqr1', { amount })}</li><li>${t('khqr2', { order: d.order })}</li><li>${esc(T[state.lang].khqr3)}</li><li>${esc(T[state.lang].khqr4)}</li>`
+          : `<li>${esc(T[state.lang].done1)}</li><li>${t('done2', { amount, order: d.order })}</li><li>${esc(T[state.lang].done3)}</li>`}
       </ol>
-      ${tg.mainButton.available() ? '' : `<a class="btn btn--block btn--big" href="${botLink()}">${icon('send')}${esc(T[state.lang][d.sent ? 'doneGo' : 'openBot'])}</a>`}
+      ${showKhqr ? `<p class="muted small" style="margin-top:6px">${esc(T[state.lang].khqrAlso)}</p>` : ''}
+      ${tg.mainButton.available() ? '' : `<a class="btn btn--block btn--big" href="${botLink()}">${icon('send')}${esc(T[state.lang][d.sent ? (showKhqr ? 'goReceipt' : 'doneGo') : 'openBot'])}</a>`}
     </div>
     ${footerHtml()}`
   bindLang()
+  bindKhqr(d)
   tg.mainButton.progress(false)
   tg.mainButton.set({
-    text: T[state.lang][d.sent ? 'doneGo' : 'openBot'],
+    text: T[state.lang][d.sent ? (showKhqr ? 'goReceipt' : 'doneGo') : 'openBot'],
     onClick: () => (d.sent ? tg.close() : tg.openTelegramLink(botLink())),
     shine: true,
   })
+}
+
+function bindKhqr(d) {
+  const img = $('#khqr-img')
+  if (img) {
+    img.addEventListener('error', () => {
+      img.closest('.khqr__img').hidden = true
+      $('#khqr-fail').hidden = false
+      const save = $('#save-khqr')
+      if (save) save.hidden = true
+    })
+  }
+  const copy = $('#copy-order')
+  if (copy) {
+    copy.addEventListener('click', async () => {
+      await copyText(d.order)
+      tg.haptic('success')
+      toast(T[state.lang].copied.replace('{order}', d.order))
+    })
+  }
+  const save = $('#save-khqr')
+  if (save) {
+    save.addEventListener('click', async () => {
+      const url = new URL(khqrUrl(true), location.href).href
+      if (tg.download.available()) {
+        const ok = await tg.download.file(url, `CoStars-KHQR-${d.order}.jpg`)
+        if (ok) toast(T[state.lang].savedQr)
+        return
+      }
+      tg.openLink(url)
+    })
+  }
 }
 
 /* ------------------------------------------------------------- behaviour */
@@ -553,6 +690,60 @@ function bind() {
   }
   const submit = $('#submit')
   if (submit) submit.addEventListener('click', onSubmit)
+  bindQty()
+  const showKhqr = $('#show-khqr')
+  if (showKhqr) {
+    showKhqr.addEventListener('click', () => {
+      const o = state.info.open
+      tg.haptic('light')
+      state.done = { order: o.order, amount: o.amount, amountText: o.amountText, sent: true }
+      render()
+      window.scrollTo(0, 0)
+    })
+  }
+}
+
+/* How many Standard tickets. Typing updates the total right away; the number is tidied when the box loses focus. */
+function bindQty() {
+  const input = $('#qty')
+  if (!input) return
+  app.querySelectorAll('.qty__btn').forEach((b) =>
+    b.addEventListener('click', () => {
+      setQty(state.qty + Number(b.dataset.step))
+      input.value = state.qty
+      tg.haptic('select')
+    }),
+  )
+  input.addEventListener('input', () => {
+    const v = parseInt(input.value, 10)
+    if (v >= 1 && v <= maxQty()) setQty(v)
+  })
+  input.addEventListener('blur', () => {
+    const v = parseInt(input.value, 10)
+    setQty(Number.isFinite(v) ? v : state.qty)
+    input.value = state.qty
+  })
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur() } })
+  input.addEventListener('focus', () => input.select())
+}
+
+function setQty(v) {
+  const max = maxQty()
+  state.qty = Math.min(Math.max(1, Math.round(v) || 1), max)
+  if (state.errors.qty) {
+    state.errors.qty = ''
+    const box = $('#qty-box')
+    if (box) box.outerHTML = qtyHtml()
+    bindQty()
+  }
+  app.querySelectorAll('.qty__btn').forEach((b) => {
+    b.disabled = Number(b.dataset.step) < 0 ? state.qty <= 1 : state.qty >= max
+  })
+  const total = $('#total')
+  if (total) total.innerHTML = totalInner()
+  const hint = $('#name-hint')
+  if (hint) hint.innerHTML = nameHint()
+  updateButton()
 }
 
 function clearError(field) {
@@ -575,7 +766,7 @@ function updateButton() {
     tg.mainButton.hide()
     return
   }
-  const amount = state.type ? money(priceOf(state.type), prices().symbol) : ''
+  const amount = state.type ? money(totalOf(state.type), prices().symbol) : ''
   const text = state.busy ? T[state.lang].sending : state.type ? t('confirm', { amount }) : T[state.lang].confirmShort
   const used = tg.mainButton.set({ text, onClick: onSubmit, active: !state.busy })
   tg.mainButton.progress(state.busy)
@@ -590,15 +781,22 @@ async function onSubmit() {
   if (state.busy || state.done) return
   const errors = {}
   if (!state.type) errors.type = T[state.lang].pickTicket
+  const qtyInput = $('#qty')
+  if (qtyInput && state.type === 'INDIVIDUAL') {
+    const v = Number(qtyInput.value)
+    if (!(Number.isInteger(v) && v >= 1 && v <= maxQty())) errors.qty = fill(T[state.lang].badQty, { max: n(maxQty()) })
+    else state.qty = v
+  }
+  const qty = qtyOf(state.type)
   const name = cleanName(state.name)
   const phone = cleanPhone(state.phone)
   if (!name) errors.name = T[state.lang].badName
   if (!phone) errors.phone = T[state.lang].badPhone
-  if (errors.type || errors.name || errors.phone) {
+  if (errors.type || errors.qty || errors.name || errors.phone) {
     state.errors = errors
     tg.haptic('error')
     render()
-    const first = errors.type ? null : $(errors.name ? '#name' : '#phone')
+    const first = errors.type ? null : $(errors.qty ? '#qty' : errors.name ? '#name' : '#phone')
     if (first) {
       first.focus()
       first.scrollIntoView({ block: 'center', behavior: 'smooth' })
@@ -606,9 +804,9 @@ async function onSubmit() {
     return
   }
   // The same answers keep the same nonce, so retrying after a lost answer never makes two orders.
-  const key = [state.type, name, phone, state.lang].join('|')
+  const key = [state.type, qty, name, phone, state.lang].join('|')
   if (!state.attempt || state.attempt.key !== key) state.attempt = { key, nonce: nonce() }
-  const order = { action: 'order', type: state.type, name, phone, lang: state.lang, nonce: state.attempt.nonce }
+  const order = { action: 'order', type: state.type, qty, name, phone, lang: state.lang, nonce: state.attempt.nonce }
 
   if (MODE === 'keyboard') {
     tg.haptic('success')
@@ -638,11 +836,11 @@ async function onSubmit() {
   }
   updateButton()
   tg.haptic('error')
-  if (res && (res.error === 'bad_name' || res.error === 'bad_phone')) {
-    state.errors = { [res.error === 'bad_name' ? 'name' : 'phone']: res.message.replace(/\s*🙏$/, '') }
+  if (res && (res.error === 'bad_name' || res.error === 'bad_phone' || res.error === 'bad_qty')) {
+    state.errors = { [{ bad_name: 'name', bad_phone: 'phone', bad_qty: 'qty' }[res.error]]: res.message.replace(/\s*🙏$/, '') }
     return render()
   }
-  if (res && (res.error === 'group_gone' || res.error === 'sold_out' || res.error === 'sales_closed')) {
+  if (res && (res.error === 'group_gone' || res.error === 'sold_out' || res.error === 'seats_few' || res.error === 'sales_closed')) {
     await tg.showAlert(res.message)
     return load()
   }
