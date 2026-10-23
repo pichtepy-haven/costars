@@ -246,7 +246,7 @@ Admin group: ✅ Approve + transaction ID ─▶ bot asks /api/ticket-image for 
 Ticket QR = https://costars-guide.vercel.app/t/<code>
   • guest scans it ─▶ ticket page
   • door staff scan it in /admin ─▶ checked in (a second scan says "Already used")
-  • staff with only a phone camera ─▶ ticket page ─▶ "Check in with Telegram" ─▶ bot checks in
+  • staff with an ordinary phone browser ─▶ /staff ─▶ scan or type the code ─▶ checked in
 ```
 
 Files:
