@@ -31,15 +31,30 @@ const PATHS = {
   hourglass: '<path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
   copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   chart: '<path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"/>',
+  minus: '<path d="M5 12h14"/>',
+  plus: '<path d="M5 12h14M12 5v14"/>',
+  qr: '<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1"/>',
 }
 
 export function icon(name, extra = '') {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${PATHS[name] || ''}</svg>`
 }
 
-/** The CoStars star from the logo. */
-export const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#810102" stroke="#810102" stroke-width="2" stroke-linejoin="round" d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z"/></svg>'
-export const logoHtml = (href = '/') => `<a class="logo" href="${href}" aria-label="CoStars event guide">Co<span>St</span>${STAR}<span>rs</span></a>`
+/** The five-point star that replaces the “a” in “CoStars” (same as the event guide's StarGlyph). */
+export const STAR = '<svg class="brand-mark__star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>'
+
+/**
+ * CoStars word mark, the same as the event guide's BrandMark: “Co” over “St★rs”.
+ * tone: 'dark' (charcoal, on light backgrounds) or 'light' (white, on the stage hero).
+ * With href it is a link; without, just the mark.
+ */
+export function logoHtml(href = '', tone = 'dark') {
+  const mark = `<span class="brand-mark__line" aria-hidden="true">Co</span><span class="brand-mark__line" aria-hidden="true">St${STAR}rs</span>`
+  const cls = `brand-mark brand-mark--${tone === 'light' ? 'light' : 'dark'}`
+  return href
+    ? `<a class="${cls}" href="${href}" aria-label="CoStars">${mark}</a>`
+    : `<span class="${cls}" role="img" aria-label="CoStars">${mark}</span>`
+}
 
 /** Curved edge at the bottom of the stage hero. */
 export const HERO_WAVE = `<svg class="hero__wave" viewBox="0 0 400 52" preserveAspectRatio="none" aria-hidden="true">
@@ -94,6 +109,29 @@ export function saveLang(lang) {
 }
 export function savedLang() {
   try { return localStorage.getItem('costars-lang') || '' } catch { return '' }
+}
+
+/** Copies text. Resolves true when it worked (some in-app browsers block the clipboard). */
+export async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {}
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.setAttribute('readonly', '')
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'
+    document.body.appendChild(ta)
+    ta.select()
+    const ok = document.execCommand('copy')
+    ta.remove()
+    return ok
+  } catch {
+    return false
+  }
 }
 
 /** A random id for one form submission, so a double tap makes one order. */
