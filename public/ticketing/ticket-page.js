@@ -7,7 +7,7 @@ import { apiGet } from './api.js'
 import { botLink } from './config.js'
 import { buildTicketSvg } from './ticket-svg.js'
 import { encodeQR } from './qr.js'
-import { esc, fill, icon, khDigits, logoHtml, savedLang, saveLang, toast } from './ui.js'
+import { applyWebTexts, esc, fill, icon, khDigits, logoHtml, savedLang, saveLang, toast } from './ui.js'
 
 const T = {
   en: {
@@ -90,6 +90,7 @@ async function load({ quiet = false } = {}) {
       return
     }
     const before = state.data && state.data.ticket.status
+    applyWebTexts(T, res.webTexts) // wording from the Web texts tab of the bot's Sheet
     state.data = res
     state.error = ''
     render()
