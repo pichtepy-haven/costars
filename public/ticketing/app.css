@@ -26,8 +26,8 @@
   --muted: #6b6662;
   --label: #9b6a4f;
 
-  --font-display: 'Poppins', 'Kantumruy Pro', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-body: 'Cabin', 'Kantumruy Pro', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Poppins', 'Hanuman', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Cabin', 'Hanuman', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -224,7 +224,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr; /* one row each: the date on top, the venue below */
   gap: 0;
   margin-top: -40px;
   border-radius: var(--radius-md);
@@ -239,7 +239,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   padding: 13px 14px;
   min-width: 0;
 }
-.fact + .fact { border-left: 1px solid var(--line); }
+.fact + .fact { border-top: 1px solid var(--line); }
 .fact--wide { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid var(--line); }
 .fact svg { flex: none; width: 20px; height: 20px; color: var(--wine); margin-top: 2px; }
 .fact b {
