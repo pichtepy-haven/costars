@@ -209,7 +209,9 @@ const MODE = tg.initData() ? 'api' : tg.inTelegram() ? 'keyboard' : 'browser'
 
 const state = {
   lang: pickLang(params.get('lang')),
-  langFixed: /^(en|km)$/.test(params.get('lang') || ''),
+  // True once the customer switches language on this page. Until then, inside Telegram the language
+  // they last chose in the bot (sent with the form data) wins, even over the ?lang= of an older button.
+  langFixed: false,
   info: null,
   type: '',
   qty: 1, // Standard tickets in this order
@@ -362,8 +364,10 @@ function choiceHtml(type) {
   const desc = group ? t('grpDesc', { size: n(size) }) : esc(T[state.lang].indDesc)
   const tag = MODE === 'browser' ? 'div' : 'button'
   const attrs = MODE === 'browser' ? '' : `type="button" role="radio" aria-checked="${state.type === type}" aria-disabled="${!can}" ${can ? '' : 'tabindex="-1"'}`
+  // Once a ticket is picked, the other one is shaded so it's clear which one is in the order.
+  const dim = MODE !== 'browser' && !!state.type && state.type !== type
   return `
-    <${tag} class="choice" data-type="${type}" ${attrs}>
+    <${tag} class="choice${dim ? ' choice--dim' : ''}" data-type="${type}" ${attrs}>
       <span class="choice__icon">${icon(group ? 'users' : 'user')}</span>
       <span>
         <span class="choice__name">${name}</span>
