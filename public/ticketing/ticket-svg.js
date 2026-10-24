@@ -13,7 +13,7 @@
  *   status:    'VALID' | 'CHECKED_IN'    checkedInAt: '16:42' (optional)
  *   event: { title, tagline, dateLabel, timeLabel, venue, venueArea, quote }
  * }
- * Fonts: Poppins (400, 500, 700, italic) and Kantumruy Pro (700) for Khmer.
+ * Fonts: Poppins (400, 500, 700, italic) and Hanuman (700) for Khmer.
  */
 import { encodeQR } from './qr.js'
 import { MUSICIANS, POPPINS } from './art.js'
@@ -63,8 +63,10 @@ const esc = (s) =>
     .replace(/"/g, '&quot;')
 
 const isKhmerZeroWidth = (c) => (c >= 0x17b7 && c <= 0x17bd) || (c >= 0x17c6 && c <= 0x17d3) || c === 0x17dd
+// Vowel signs written beside the consonant (ា េ ែ ៃ ោ ៅ ...): about half as wide as a consonant in Hanuman.
+const isKhmerSideVowel = (c) => c === 0x17b6 || (c >= 0x17be && c <= 0x17c5)
 
-/** Approximate width of a text run in px (Poppins metrics; Khmer estimated). */
+/** Approximate width of a text run in px (Poppins metrics; Khmer from Hanuman Bold averages). */
 export function textWidth(str, weight = 'regular', size = 16, spacing = 0) {
   const table = POPPINS[weight] || POPPINS.regular
   let units = 0
@@ -76,7 +78,7 @@ export function textWidth(str, weight = 'regular', size = 16, spacing = 0) {
     if (afterCoeng) { afterCoeng = false; continue } // subscript consonant sits under the previous one
     if (c === 0x17d2) { afterCoeng = true; continue }
     if (c >= 32 && c < 127) units += table[c - 32]
-    else if (c >= 0x1780 && c <= 0x17ff) units += isKhmerZeroWidth(c) ? 0 : 640
+    else if (c >= 0x1780 && c <= 0x17ff) units += isKhmerZeroWidth(c) ? 0 : isKhmerSideVowel(c) ? 320 : 730
     else units += 620
   }
   return (units / 1000) * size + spacing * Math.max(0, count - 1)
@@ -286,7 +288,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   // --- body ---------------------------------------------------------------
   const cx = W / 2
   const fit = fitName(t.name || 'Guest')
-  const nameFont = fit.khmer ? "'Kantumruy Pro', Poppins" : 'Poppins'
+  const nameFont = fit.khmer ? "'Hanuman', Poppins" : 'Poppins'
   const nameY = fit.lines.length > 1 ? 398 : 412
   const nameSvg = fit.lines
     .map((line, i) => `<text x="${cx}" y="${nameY + i * fit.size * 1.12}" text-anchor="middle" font-family="${nameFont}" font-weight="700" font-size="${fit.size.toFixed(1)}" fill="${C.ink}">${esc(line)}</text>`)
@@ -341,7 +343,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   const row2 = 100
   const venueY = py0 + 58
   const venueSvg = venueLines
-    .map((line, i) => `<text x="${midX + 52}" y="${venueY + i * 19}" font-family="${KHMER.test(line) ? "'Kantumruy Pro', Poppins" : 'Poppins'}" font-weight="700" font-size="15.5" fill="${C.ink}">${esc(line)}</text>`)
+    .map((line, i) => `<text x="${midX + 52}" y="${venueY + i * 19}" font-family="${KHMER.test(line) ? "'Hanuman', Poppins" : 'Poppins'}" font-weight="700" font-size="15.5" fill="${C.ink}">${esc(line)}</text>`)
     .join('')
   const areaY = venueY + (venueLines.length - 1) * 19 + 4
   const typeValue = group ? `Group of ${t.guests}` : 'Standard'
@@ -359,7 +361,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     ${icon('pin', midX + 18, py0 + 22, 22, C.wine, 2)}
     ${label(midX + 52, py0 + 34, 'EVENT VENUE')}
     ${venueSvg}
-    <text x="${midX + 52}" y="${areaY + 16}" font-family="${KHMER.test(ev.venueArea) ? "'Kantumruy Pro', Poppins" : 'Poppins'}" font-weight="400" font-size="13" fill="${C.muted}">${esc(ev.venueArea)}</text>
+    <text x="${midX + 52}" y="${areaY + 16}" font-family="${KHMER.test(ev.venueArea) ? "'Hanuman', Poppins" : 'Poppins'}" font-weight="400" font-size="13" fill="${C.muted}">${esc(ev.venueArea)}</text>
     ${icon('ticket', px0 + 20, py0 + row1 + 22, 22, C.wine, 2)}
     ${label(px0 + 54, py0 + row1 + 34, 'TICKET TYPE')}
     <text x="${px0 + 54}" y="${py0 + row1 + 58}" font-family="Poppins" font-weight="700" font-size="16.5" fill="${C.ink}">${esc(typeValue)}</text>
