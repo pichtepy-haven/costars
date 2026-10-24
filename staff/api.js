@@ -1,5 +1,4 @@
-import { CHECKIN_API_URL, DEMO_MODE } from './config.js'
-import { demoApi } from './demo.js'
+import { CHECKIN_API_URL } from './config.js'
 
 export class ApiError extends Error {
   constructor(code, extra = {}) {
@@ -10,15 +9,11 @@ export class ApiError extends Error {
 }
 
 /**
- * Calls the check-in web app. Sent as text/plain so the browser makes a
- * "simple" request (no CORS pre-flight, which Apps Script can't answer).
+ * Calls the bot (login, checkin, undo, stats; the bot knows them as staff_login and so on).
+ * Sent as text/plain so the browser makes a "simple" request (no CORS pre-flight, which
+ * Apps Script can't answer).
  */
 export async function callApi(action, payload = {}, { timeout = 25000 } = {}) {
-  if (DEMO_MODE) {
-    const data = await demoApi(action, payload)
-    if (!data.ok) throw new ApiError(data.error, data)
-    return data
-  }
   if (!CHECKIN_API_URL) throw new ApiError('not_configured')
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
@@ -27,7 +22,7 @@ export async function callApi(action, payload = {}, { timeout = 25000 } = {}) {
     res = await fetch(CHECKIN_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, ...payload }),
+      body: JSON.stringify({ ...payload, action: `staff_${action}` }),
       credentials: 'omit',
       cache: 'no-store',
       redirect: 'follow',
