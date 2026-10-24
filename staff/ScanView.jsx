@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Ban, CircleCheckBig, CircleX, LoaderCircle, LogOut, RotateCcw, TriangleAlert, Undo2, WifiOff } from 'lucide-react'
 import { callApi, describeError } from './api.js'
-import { DEMO_MODE } from './config.js'
-import { SAMPLE_TICKETS, SAMPLE_UNKNOWN, resetDemo } from './demo.js'
 import QrScanner from './QrScanner.jsx'
 import { StaffFooter, StaffHeader } from './Shell.jsx'
 
@@ -259,12 +257,6 @@ export default function ScanView({ session, onLogout }) {
           </div>
         </section>
 
-        {DEMO_MODE ? (
-          <p className="st-preview st-preview--slim" role="note">
-            <strong>Preview mode:</strong> sample tickets only, nothing is saved.
-          </p>
-        ) : null}
-
         {offline ? (
           <p className="st-alert st-alert--error" role="status">
             <WifiOff aria-hidden="true" /> Can’t reach the check-in system. Check Wi-Fi or mobile data.
@@ -287,7 +279,7 @@ export default function ScanView({ session, onLogout }) {
               id="st-code"
               value={manual}
               onChange={(e) => setManual(e.target.value)}
-              placeholder="e.g. CTK-25010-0001"
+              placeholder="e.g. CS-0001-1"
               autoComplete="off"
               autoCapitalize="characters"
               autoCorrect="off"
@@ -299,38 +291,6 @@ export default function ScanView({ session, onLogout }) {
             </button>
           </div>
         </form>
-
-        {DEMO_MODE ? (
-          <section className="st-card st-samples" aria-labelledby="st-samples-title">
-            <h2 id="st-samples-title">Try a sample ticket</h2>
-            <p>Tap one to act out a scan, or scan its QR code from another screen.</p>
-            <div className="st-samples__list">
-              {SAMPLE_TICKETS.map((t) => (
-                <button key={t.code} type="button" className="st-chip" onClick={() => submit(t.code, 'manual')} disabled={busy}>
-                  <span>{t.code}</span>
-                  <small>{t.label}</small>
-                </button>
-              ))}
-              <button type="button" className="st-chip" onClick={() => submit(SAMPLE_UNKNOWN, 'manual')} disabled={busy}>
-                <span>{SAMPLE_UNKNOWN}</span>
-                <small>Not a ticket</small>
-              </button>
-            </div>
-            <button
-              type="button"
-              className="st-link"
-              onClick={() => {
-                resetDemo()
-                setRecent([])
-                setResult(null)
-                lastRef.current = { text: '', at: 0 }
-                callApi('stats', { token }).then((d) => setStats(d.stats)).catch(() => {})
-              }}
-            >
-              <RotateCcw aria-hidden="true" /> Reset the sample tickets
-            </button>
-          </section>
-        ) : null}
 
         {recent.length ? (
           <section className="st-card st-recent" aria-labelledby="st-recent-title">
