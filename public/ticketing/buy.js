@@ -362,8 +362,10 @@ function choiceHtml(type) {
   const desc = group ? t('grpDesc', { size: n(size) }) : esc(T[state.lang].indDesc)
   const tag = MODE === 'browser' ? 'div' : 'button'
   const attrs = MODE === 'browser' ? '' : `type="button" role="radio" aria-checked="${state.type === type}" aria-disabled="${!can}" ${can ? '' : 'tabindex="-1"'}`
+  // The ticket that isn't chosen fades to grey (it can still be tapped to switch to it).
+  const dimmed = MODE !== 'browser' && can && !!state.type && state.type !== type
   return `
-    <${tag} class="choice" data-type="${type}" ${attrs}>
+    <${tag} class="choice${dimmed ? ' choice--dimmed' : ''}" data-type="${type}" ${attrs}>
       <span class="choice__icon">${icon(group ? 'users' : 'user')}</span>
       <span>
         <span class="choice__name">${name}</span>
