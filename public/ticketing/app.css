@@ -76,6 +76,8 @@ h1, h2, h3 {
   letter-spacing: -0.01em;
 }
 h2 { font-size: 17px; font-weight: 600; }
+/* Khmer letters join into clusters: extra spacing between them pulls the words apart */
+[lang='km'] :is(h1, h2, h3) { letter-spacing: 0; }
 
 .eyebrow {
   font-family: var(--font-display);
@@ -85,7 +87,7 @@ h2 { font-size: 17px; font-weight: 600; }
   text-transform: uppercase;
   color: var(--label);
 }
-[lang='km'] .eyebrow { letter-spacing: 0.02em; text-transform: none; font-size: 12.5px; }
+[lang='km'] .eyebrow { letter-spacing: 0; text-transform: none; font-size: 12.5px; }
 
 .muted { color: var(--muted); }
 .small { font-size: 13.5px; }
@@ -148,7 +150,7 @@ h2 { font-size: 17px; font-weight: 600; }
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', 'Hanuman', sans-serif;
   font-weight: 800;
   font-size: var(--logo-size, 25px);
   line-height: 0.8;
@@ -177,6 +179,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   text-transform: uppercase;
   color: #ffe9cf;
 }
+[lang='km'] .hero__title { letter-spacing: 0; text-transform: none; font-size: 13.5px; }
 .hero h1 {
   margin-top: 4px;
   color: #fff9f1;
@@ -270,7 +273,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   border-radius: 50%;
   background: var(--wine);
   color: #fff;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', 'Hanuman', sans-serif;
   font-weight: 600;
   font-size: 13px;
 }
@@ -342,7 +345,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 .choice__price { text-align: right; }
 .choice__price b {
   display: block;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', 'Hanuman', sans-serif;
   font-weight: 700;
   font-size: 22px;
   color: var(--wine);
@@ -413,7 +416,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   border-right: 1px solid var(--line);
   background: transparent;
   color: var(--charcoal);
-  font: 600 18px/1 'Poppins', sans-serif; /* 16px or more, so iPhones don't zoom in */
+  font: 600 18px/1 'Poppins', 'Hanuman', sans-serif; /* 16px or more, so iPhones don't zoom in */
   text-align: center;
   outline: none;
   -webkit-appearance: none;
@@ -547,7 +550,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   border-radius: 50%;
   background: var(--wine-tint);
   color: var(--wine);
-  font: 600 12.5px/1 'Poppins', sans-serif;
+  font: 600 12.5px/1 'Poppins', 'Hanuman', sans-serif;
 }
 .steps li:not(:last-child)::after {
   content: '';
@@ -568,7 +571,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
-.total b { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: var(--wine); }
+.total b { font-family: 'Poppins', 'Hanuman', sans-serif; font-size: 24px; font-weight: 700; color: var(--wine); }
 .total span { font-size: 13px; color: var(--muted); }
 .total__of { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); }
 
@@ -606,8 +609,8 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   text-align: right;
 }
 .pay__fact dd > span { font-size: 12.5px; color: var(--muted); }
-.pay__order { font: 700 18px/1.2 'Poppins', sans-serif; letter-spacing: 0.04em; color: var(--charcoal); }
-.pay__amount { font: 700 20px/1.2 'Poppins', sans-serif; color: var(--wine); }
+.pay__order { font: 700 18px/1.2 'Poppins', 'Hanuman', sans-serif; letter-spacing: 0.04em; color: var(--charcoal); }
+.pay__amount { font: 700 20px/1.2 'Poppins', 'Hanuman', sans-serif; color: var(--wine); }
 .pay__ticket { font: 600 14px/1.35 var(--font-display); color: var(--charcoal); }
 .chip-btn {
   display: inline-flex;
@@ -838,5 +841,5 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 }
 .qr-full__card h2 { margin: 2px 0 12px; font-size: 19px; }
 .qr-full__card svg { width: 100%; height: auto; image-rendering: pixelated; }
-.qr-full__code { margin: 10px 0 0; font: 700 18px/1 'Poppins', sans-serif; letter-spacing: 0.16em; color: var(--charcoal); }
+.qr-full__code { margin: 10px 0 0; font: 700 18px/1 'Poppins', 'Hanuman', sans-serif; letter-spacing: 0.16em; color: var(--charcoal); }
 .qr-full__hint { margin: 0; color: rgba(255, 255, 255, 0.8); font-size: 13.5px; }
