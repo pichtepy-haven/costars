@@ -12,7 +12,7 @@
 import { apiGet, apiPost } from './api.js'
 import { botLink } from './config.js'
 import * as tg from './tg.js'
-import { HERO_WAVE, copyText, esc, fill, icon, khDigits, logoHtml, money, nonce, riel, savedLang, saveLang, toast } from './ui.js'
+import { HERO_WAVE, applyWebTexts, copyText, esc, fill, icon, khDigits, logoHtml, money, nonce, riel, savedLang, saveLang, toast } from './ui.js'
 
 /** The ticket KHQR as a picture (api/khqr.js turns the bot's copy into an image address). */
 const KHQR_URL = '/api/khqr'
@@ -275,6 +275,7 @@ async function load() {
     return renderLoadError()
   }
   const info = state.info
+  applyWebTexts(T, info.webTexts) // wording from the Web texts tab of the bot's Sheet
   if (!state.langFixed && (info.lang === 'km' || info.lang === 'en')) state.lang = info.lang
   if (info.last && MODE === 'api' && !state.name && !state.phone) {
     state.name = info.last.name || ''
