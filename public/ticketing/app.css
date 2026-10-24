@@ -191,8 +191,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 [lang='km'] .hero h1 { font-size: 24px; line-height: 1.45; }
 .hero__sub {
   margin: 6px 0 0;
-  max-width: 330px;
-  font-size: 14px;
+  font-size: 13px;
   color: #f6dcc6;
 }
 
@@ -237,9 +236,9 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 }
 .fact {
   display: flex;
-  gap: 10px;
+  gap: 9px;
   align-items: flex-start;
-  padding: 13px 14px;
+  padding: 12px 12px;
   min-width: 0;
 }
 .fact + .fact { border-top: 1px solid var(--line); }
@@ -251,9 +250,10 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   font-weight: 600;
   font-size: 14px;
   color: var(--charcoal);
-  line-height: 1.45;
+  line-height: 1.4;
 }
-.fact span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.fact span { display: block; margin-top: 2px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+[lang='km'] .fact b { font-size: 12.5px; }
 
 /* ------------------------------------------------------------------- blocks */
 
@@ -338,9 +338,9 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   font-weight: 600;
   font-size: 15.5px;
   color: var(--charcoal);
-  line-height: 1.45;
+  line-height: 1.4;
 }
-.choice__desc { display: block; font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 3px; }
+.choice__desc { display: block; font-size: 13px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
 .choice__badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
 .choice__price { text-align: right; }
 .choice__price b {
@@ -363,9 +363,9 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px 14px;
-  margin: -16px 10px 0;
-  padding: 24px 14px 12px;
+  gap: 10px;
+  margin: -16px 8px 0;
+  padding: 24px 12px 12px;
   border: 1.5px solid #ead2cb;
   border-top: 0;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
@@ -374,8 +374,9 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 }
 @keyframes drop { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
 .qty__text { flex: 1 1 116px; min-width: 0; }
-.qty__label { display: block; font: 600 14px/1.45 var(--font-display); color: var(--charcoal); }
-.qty__hint { display: block; margin-top: 3px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.qty__label { display: block; font: 600 14px/1.4 var(--font-display); color: var(--charcoal); }
+.qty__hint { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+[lang='km'] .qty__label { font-size: 13px; }
 .qty__error { flex-basis: 100%; margin-top: 0; }
 
 .stepper {
@@ -393,8 +394,8 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 .stepper__btn {
   display: grid;
   place-items: center;
-  width: 44px;
-  min-height: 44px;
+  width: 34px;
+  min-height: 38px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -406,17 +407,17 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 .stepper__btn:active:not(:disabled) { background: #f0dcd6; }
 .stepper__btn:focus-visible { outline: 2px solid var(--wine); outline-offset: -4px; border-radius: 9px; }
 .stepper__btn:disabled { color: #cbc2b8; cursor: not-allowed; }
-.stepper__btn svg { width: 18px; height: 18px; }
+.stepper__btn svg { width: 16px; height: 16px; }
 .stepper__input {
-  width: 48px;
-  min-height: 44px;
+  width: 38px;
+  min-height: 38px;
   padding: 0;
   border: 0;
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
   background: transparent;
   color: var(--charcoal);
-  font: 600 18px/1 'Poppins', 'Kantumruy Pro', sans-serif; /* 16px or more, so iPhones don't zoom in */
+  font: 600 17px/1 'Poppins', 'Kantumruy Pro', sans-serif; /* 16px or more, so iPhones don't zoom in */
   text-align: center;
   outline: none;
   -webkit-appearance: none;
@@ -611,7 +612,7 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 .pay__fact dd > span { font-size: 12.5px; color: var(--muted); }
 .pay__order { font: 700 18px/1.2 'Poppins', 'Kantumruy Pro', sans-serif; letter-spacing: 0.04em; color: var(--charcoal); }
 .pay__amount { font: 700 20px/1.2 'Poppins', 'Kantumruy Pro', sans-serif; color: var(--wine); }
-.pay__ticket { font: 600 14px/1.5 var(--font-display); color: var(--charcoal); }
+.pay__ticket { font: 600 14px/1.45 var(--font-display); color: var(--charcoal); }
 .chip-btn {
   display: inline-flex;
   align-items: center;
@@ -800,12 +801,12 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 .status--in { background: linear-gradient(120deg, #fbefd9, #f7e2c4); border-color: #ecd3a8; color: var(--amber-ink); }
 .status__icon { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.7); }
 .status__icon svg { width: 22px; height: 22px; }
-.status b { display: block; font-family: var(--font-display); font-weight: 600; font-size: 15.5px; line-height: 1.45; }
-.status span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.55; }
+.status b { display: block; font-family: var(--font-display); font-weight: 600; font-size: 15.5px; line-height: 1.4; }
+.status span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.45; }
 .status > div { flex: 1; min-width: 0; }
 
-/* Khmer has marks above and below the letters: text that runs onto two lines needs taller lines */
-[lang='km'] :is(.fact b, .fact span, .choice__name, .choice__desc, .qty__label, .qty__hint, .pay__ticket, .status b, .status span, .notice) { line-height: 1.7; }
+/* Khmer has marks above and below the letters, so its lines need a little more height */
+[lang='km'] :is(.fact b, .fact span, .choice__name, .choice__desc, .qty__label, .qty__hint, .pay__ticket, .status b, .status span, .notice) { line-height: 1.55; }
 .status .badge { align-self: flex-start; }
 
 .ticket {
