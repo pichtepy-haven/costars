@@ -13,7 +13,7 @@
  *   status:    'VALID' | 'CHECKED_IN'    checkedInAt: '16:42' (optional)
  *   event: { title, tagline, dateLabel, timeLabel, venue, venueArea, quote }
  * }
- * Fonts: Poppins (400, 500, 700, italic) and Hanuman (700) for Khmer.
+ * Fonts: Poppins (400, 500, 700, italic) and Hanuman (700) for Khmer: every text falls back to Hanuman.
  */
 import { encodeQR } from './qr.js'
 import { MUSICIANS, POPPINS } from './art.js'
@@ -269,7 +269,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   const starX = logoX + textWidth('St', 'bold', F, LS) + LS + 0.005 * F
   const starY = stY + 0.035 * F - starSize
   const logo = `
-    <g font-family="Poppins" font-weight="700" font-size="${F}" letter-spacing="${LS.toFixed(2)}" fill="${C.ink}" stroke="${C.ink}" stroke-width="1.2" stroke-linejoin="round">
+    <g font-family="Poppins, Hanuman" font-weight="700" font-size="${F}" letter-spacing="${LS.toFixed(2)}" fill="${C.ink}" stroke="${C.ink}" stroke-width="1.2" stroke-linejoin="round">
       <text x="${logoX}" y="${coY}">Co</text>
       <text x="${logoX}" y="${stY.toFixed(1)}">St</text>
       <path transform="translate(${starX.toFixed(2)} ${starY.toFixed(2)}) scale(${(starSize / 24).toFixed(4)})" stroke-width="2.2" d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z"/>
@@ -278,15 +278,15 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
 
   const titleRight = x1 - 26
   const header = `
-    <text x="${titleRight}" y="66" text-anchor="end" font-family="Poppins" font-weight="500" font-size="15" letter-spacing="2.4" fill="#FFF6EA">${esc(ev.title)}</text>
-    <text x="${titleRight}" y="90" text-anchor="end" font-family="Poppins" font-style="italic" font-weight="400" font-size="14" letter-spacing="0.6" fill="#F4DCC6">${esc(ev.tagline)}</text>
+    <text x="${titleRight}" y="66" text-anchor="end" font-family="Poppins, Hanuman" font-weight="500" font-size="15" letter-spacing="2.4" fill="#FFF6EA">${esc(ev.title)}</text>
+    <text x="${titleRight}" y="90" text-anchor="end" font-family="Poppins, Hanuman" font-style="italic" font-weight="400" font-size="14" letter-spacing="0.6" fill="#F4DCC6">${esc(ev.tagline)}</text>
     <path d="M${titleRight - 186} 108H${titleRight - 102}M${titleRight - 84} 108H${titleRight}" stroke="${C.goldSoft}" stroke-width="1.1" opacity="0.9"/>
     ${diamond(titleRight - 93, 108, 5, C.gold)}`
 
   // --- body ---------------------------------------------------------------
   const cx = W / 2
   const fit = fitName(t.name || 'Guest')
-  const nameFont = fit.khmer ? "'Hanuman', Poppins" : 'Poppins'
+  const nameFont = fit.khmer ? "'Hanuman', Poppins" : 'Poppins, Hanuman'
   const nameY = fit.lines.length > 1 ? 398 : 412
   const nameSvg = fit.lines
     .map((line, i) => `<text x="${cx}" y="${nameY + i * fit.size * 1.12}" text-anchor="middle" font-family="${nameFont}" font-weight="700" font-size="${fit.size.toFixed(1)}" fill="${C.ink}">${esc(line)}</text>`)
@@ -299,7 +299,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     <path d="M${cx - pillW / 2 - 70} ${pillY + 17}H${cx - pillW / 2 - 22}M${cx + pillW / 2 + 22} ${pillY + 17}H${cx + pillW / 2 + 70}" stroke="${C.goldSoft}" stroke-width="1.2"/>
     ${diamond(cx - pillW / 2 - 16, pillY + 17, 5, C.wine)}${diamond(cx + pillW / 2 + 16, pillY + 17, 5, C.wine)}
     <rect x="${cx - pillW / 2}" y="${pillY}" width="${pillW}" height="34" rx="17" fill="${C.wine}"/>
-    <text x="${cx}" y="${pillY + 22.5}" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="14" letter-spacing="2.2" fill="#FFF4EA">${pillText}</text>`
+    <text x="${cx}" y="${pillY + 22.5}" text-anchor="middle" font-family="Poppins, Hanuman" font-weight="700" font-size="14" letter-spacing="2.2" fill="#FFF4EA">${pillText}</text>`
 
   // QR code in a white square with wine corner brackets.
   const qr = encodeQR(t.url || 'https://costars-guide.vercel.app', 'M')
@@ -323,14 +323,14 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
 
   const codeText = `${t.orderId || 'CS-' + String(t.ticketId || '').split('-')[0]}-${t.guestNo || 1}`
   const codeY = boxY + box + 50
-  const code = `<text x="${cx}" y="${codeY}" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="23" letter-spacing="3.2" fill="${C.ink}">${esc(codeText)}</text>`
+  const code = `<text x="${cx}" y="${codeY}" text-anchor="middle" font-family="Poppins, Hanuman" font-weight="700" font-size="23" letter-spacing="3.2" fill="${C.ink}">${esc(codeText)}</text>`
   const statusText = checked ? `Checked in${t.checkedInAt ? ' ' + t.checkedInAt : ''}` : 'Valid Ticket'
   const statusW = textWidth(statusText, 'medium', 15) + 60
   const statusY = codeY + 20
   const status = `
     <rect x="${cx - statusW / 2}" y="${statusY}" width="${statusW}" height="32" rx="16" fill="${checked ? C.amberBg : C.greenBg}"/>
     ${icon(checked ? 'clock' : 'check', cx - statusW / 2 + 15, statusY + 7, 18, checked ? C.amber : C.green, 2.3)}
-    <text x="${cx - statusW / 2 + 41}" y="${statusY + 21.5}" font-family="Poppins" font-weight="500" font-size="15" fill="${checked ? C.amber : C.green}">${esc(statusText)}</text>`
+    <text x="${cx - statusW / 2 + 41}" y="${statusY + 21.5}" font-family="Poppins, Hanuman" font-weight="500" font-size="15" fill="${checked ? C.amber : C.green}">${esc(statusText)}</text>`
 
   // Details panel: date, venue, ticket type, thank-you line.
   const px0 = 56, px1 = W - 56
@@ -341,30 +341,30 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   const row2 = 100
   const venueY = py0 + 58
   const venueSvg = venueLines
-    .map((line, i) => `<text x="${midX + 52}" y="${venueY + i * 19}" font-family="${KHMER.test(line) ? "'Hanuman', Poppins" : 'Poppins'}" font-weight="700" font-size="15.5" fill="${C.ink}">${esc(line)}</text>`)
+    .map((line, i) => `<text x="${midX + 52}" y="${venueY + i * 19}" font-family="${KHMER.test(line) ? "'Hanuman', Poppins" : 'Poppins, Hanuman'}" font-weight="700" font-size="15.5" fill="${C.ink}">${esc(line)}</text>`)
     .join('')
   const areaY = venueY + (venueLines.length - 1) * 19 + 4
   const typeValue = group ? `Group of ${t.guests}` : 'Standard'
   // Several Standard tickets bought together also say which guest this QR is for.
   const typeSub = group || t.guests > 1 ? `Guest ${t.guestNo} of ${t.guests}, one QR each` : 'One person, drink included'
   const quoteLines = wrapText(ev.quote, 'italic', 13.5, px1 - midX - 70, 3)
-  const label = (x, y, text) => `<text x="${x}" y="${y}" font-family="Poppins" font-weight="500" font-size="11" letter-spacing="2" fill="${C.label}">${text}</text>`
+  const label = (x, y, text) => `<text x="${x}" y="${y}" font-family="Poppins, Hanuman" font-weight="500" font-size="11" letter-spacing="2" fill="${C.label}">${text}</text>`
   const details = `
     <rect x="${px0}" y="${py0}" width="${px1 - px0}" height="${row1 + row2}" rx="16" fill="${C.paper}" stroke="${C.line}" stroke-width="1.2"/>
     <path d="M${midX} ${py0 + 18}V${py0 + row1 - 18}M${px0 + 20} ${py0 + row1}H${px1 - 20}M${midX} ${py0 + row1 + 18}V${py0 + row1 + row2 - 18}" stroke="${C.line}" stroke-width="1.2"/>
     ${icon('calendar', px0 + 20, py0 + 22, 22, C.wine, 2)}
     ${label(px0 + 54, py0 + 34, 'EVENT DATE')}
-    <text x="${px0 + 54}" y="${py0 + 58}" font-family="Poppins" font-weight="700" font-size="16.5" fill="${C.ink}">${esc(ev.dateLabel)}</text>
-    <text x="${px0 + 54}" y="${py0 + 80}" font-family="Poppins" font-weight="400" font-size="13.5" fill="${C.muted}">${esc(ev.timeLabel)}</text>
+    <text x="${px0 + 54}" y="${py0 + 58}" font-family="Poppins, Hanuman" font-weight="700" font-size="16.5" fill="${C.ink}">${esc(ev.dateLabel)}</text>
+    <text x="${px0 + 54}" y="${py0 + 80}" font-family="Poppins, Hanuman" font-weight="400" font-size="13.5" fill="${C.muted}">${esc(ev.timeLabel)}</text>
     ${icon('pin', midX + 18, py0 + 22, 22, C.wine, 2)}
     ${label(midX + 52, py0 + 34, 'EVENT VENUE')}
     ${venueSvg}
-    <text x="${midX + 52}" y="${areaY + 16}" font-family="${KHMER.test(ev.venueArea) ? "'Hanuman', Poppins" : 'Poppins'}" font-weight="400" font-size="13" fill="${C.muted}">${esc(ev.venueArea)}</text>
+    <text x="${midX + 52}" y="${areaY + 16}" font-family="${KHMER.test(ev.venueArea) ? "'Hanuman', Poppins" : 'Poppins, Hanuman'}" font-weight="400" font-size="13" fill="${C.muted}">${esc(ev.venueArea)}</text>
     ${icon('ticket', px0 + 20, py0 + row1 + 22, 22, C.wine, 2)}
     ${label(px0 + 54, py0 + row1 + 34, 'TICKET TYPE')}
-    <text x="${px0 + 54}" y="${py0 + row1 + 58}" font-family="Poppins" font-weight="700" font-size="16.5" fill="${C.ink}">${esc(typeValue)}</text>
-    <text x="${px0 + 54}" y="${py0 + row1 + 80}" font-family="Poppins" font-weight="400" font-size="12.5" fill="${C.muted}">${esc(typeSub)}</text>
-    ${quoteLines.map((line, i) => `<text x="${midX + 28}" y="${py0 + row1 + 40 + i * 19}" font-family="Poppins" font-style="italic" font-weight="400" font-size="13.5" fill="#9A5743">${esc(line)}</text>`).join('')}
+    <text x="${px0 + 54}" y="${py0 + row1 + 58}" font-family="Poppins, Hanuman" font-weight="700" font-size="16.5" fill="${C.ink}">${esc(typeValue)}</text>
+    <text x="${px0 + 54}" y="${py0 + row1 + 80}" font-family="Poppins, Hanuman" font-weight="400" font-size="12.5" fill="${C.muted}">${esc(typeSub)}</text>
+    ${quoteLines.map((line, i) => `<text x="${midX + 28}" y="${py0 + row1 + 40 + i * 19}" font-family="Poppins, Hanuman" font-style="italic" font-weight="400" font-size="13.5" fill="#9A5743">${esc(line)}</text>`).join('')}
     ${star4(px1 - 30, py0 + row1 + row2 - 24, 11, C.gold)}`
 
   const bodyBottom = py0 + row1 + row2
@@ -426,7 +426,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     <path d="M${x0} 282C150 286 270 320 410 316C512 313 574 302 ${x1} 294" fill="none" stroke="${C.gold}" stroke-width="1.6" opacity="0.9"/>
     ${ornament(112, 268, 1.05, C.goldSoft, '#A8774A')}
     <rect x="44" y="330" width="${W - 88}" height="${bodyBottom + 18 - 330}" rx="16" fill="none" stroke="${C.line}" stroke-width="1"/>
-    <text x="${cx}" y="372" text-anchor="middle" font-family="Poppins" font-weight="500" font-size="13.5" letter-spacing="3.6" fill="${C.label}">TICKET HOLDER</text>
+    <text x="${cx}" y="372" text-anchor="middle" font-family="Poppins, Hanuman" font-weight="500" font-size="13.5" letter-spacing="3.6" fill="${C.label}">TICKET HOLDER</text>
     ${nameSvg}
     ${pill}
     ${qrSvg}
