@@ -52,7 +52,6 @@ const T = {
     phonePh: '012 345 678',
     usePhone: 'Use my Telegram number',
     phoneShared: 'Thanks! Your number was shared with the bot',
-    welcomeBack: 'Welcome back! We filled in your details from last time',
     badName: 'Please type a name with 2 to 60 letters',
     badPhone: 'Please type 8 to 15 digits, like 012 345 678',
     pickTicket: 'Please choose a ticket first',
@@ -143,7 +142,6 @@ const T = {
     phonePh: '012 345 678',
     usePhone: 'ប្រើលេខ Telegram របស់ខ្ញុំ',
     phoneShared: 'អរគុណ! លេខរបស់អ្នកត្រូវបានចែករំលែកជាមួយ Bot ហើយ',
-    welcomeBack: 'សូមស្វាគមន៍ការត្រឡប់មកវិញ! យើងបានបំពេញព័ត៌មានពីលើកមុនឲ្យរួចហើយ',
     badName: 'សូមវាយឈ្មោះដែលមានពី ២ ដល់ ៦០ តួអក្សរ',
     badPhone: 'សូមវាយលេខពី ៨ ដល់ ១៥ ខ្ទង់ ឧទាហរណ៍ 012 345 678',
     pickTicket: 'សូមជ្រើសរើសសំបុត្រជាមុនសិន',
@@ -215,7 +213,6 @@ const state = {
   qty: 1, // Standard tickets in this order
   name: '',
   phone: '',
-  prefilled: false,
   errors: {},
   busy: false,
   attempt: null,
@@ -282,7 +279,6 @@ async function load() {
   if (info.last && MODE === 'api' && !state.name && !state.phone) {
     state.name = info.last.name || ''
     state.phone = info.last.phone || ''
-    state.prefilled = !!(state.name || state.phone)
   }
   // Pick a ticket that is still on sale (nothing is picked on the browser page, where it is only a price list).
   const onSale = (type) => !!type && info.salesOpen && (type === 'GROUP' ? info.canGroup : info.canIndividual)
@@ -409,7 +405,6 @@ function noticesHtml() {
     const key = info.open.status === 'AWAITING_PAYMENT' ? 'openWaiting' : 'openChecking'
     out.push(`<div class="notice rise">${icon(key === 'openWaiting' ? 'hourglass' : 'receipt')}<div>${lines(t(key, { order: info.open.order, amount: info.open.amountText || '' }))}</div></div>`)
   }
-  if (state.prefilled) out.push(`<div class="notice notice--green rise">${icon('heart')}<div>${esc(T[state.lang].welcomeBack)}</div></div>`)
   return out.length ? `<div class="section" style="display:grid;gap:10px">${out.join('')}</div>` : ''
 }
 
