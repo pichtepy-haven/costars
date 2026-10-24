@@ -136,3 +136,22 @@ export async function copyText(text) {
 
 /** A random id for one form submission, so a double tap makes one order. */
 export const nonce = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
+
+/**
+ * Wording from the "Web texts" tab of the bot's Google Sheet. The bot sends it with the data
+ * the page loads anyway (webTexts: { en: { key: text }, km: { ... } }), so it costs no extra
+ * request. A filled-in cell replaces the built-in text with the same key; anything missing,
+ * empty or unknown keeps the built-in wording. < and > are dropped, so a cell can't add HTML.
+ */
+export function applyWebTexts(T, webTexts) {
+  if (!webTexts || typeof webTexts !== 'object') return
+  for (const lang of Object.keys(T)) {
+    const rows = webTexts[lang]
+    if (!rows || typeof rows !== 'object') continue
+    for (const [key, value] of Object.entries(rows)) {
+      if (!Object.prototype.hasOwnProperty.call(T.en, key) || typeof value !== 'string') continue
+      const text = value.replace(/\r\n?/g, '\n').replace(/[<>]/g, '').trim()
+      if (text) T[lang][key] = text
+    }
+  }
+}
