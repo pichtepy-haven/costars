@@ -13,7 +13,7 @@
  *   status:    'VALID' | 'CHECKED_IN'    checkedInAt: '16:42' (optional)
  *   event: { title, tagline, dateLabel, timeLabel, venue, venueArea, quote }
  * }
- * Fonts: Poppins (400, 500, 700, italic) and Kantumruy Pro (700) for Khmer.
+ * Fonts: Poppins (400, 500, 700, italic) and Hanuman (700) for Khmer.
  */
 import { encodeQR } from './qr.js'
 import { MUSICIANS, POPPINS } from './art.js'
@@ -286,7 +286,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   // --- body ---------------------------------------------------------------
   const cx = W / 2
   const fit = fitName(t.name || 'Guest')
-  const nameFont = fit.khmer ? "'Kantumruy Pro', Poppins" : 'Poppins'
+  const nameFont = fit.khmer ? "'Hanuman', Poppins" : 'Poppins'
   const nameY = fit.lines.length > 1 ? 398 : 412
   const nameSvg = fit.lines
     .map((line, i) => `<text x="${cx}" y="${nameY + i * fit.size * 1.12}" text-anchor="middle" font-family="${nameFont}" font-weight="700" font-size="${fit.size.toFixed(1)}" fill="${C.ink}">${esc(line)}</text>`)
@@ -341,7 +341,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   const row2 = 100
   const venueY = py0 + 58
   const venueSvg = venueLines
-    .map((line, i) => `<text x="${midX + 52}" y="${venueY + i * 19}" font-family="${KHMER.test(line) ? "'Kantumruy Pro', Poppins" : 'Poppins'}" font-weight="700" font-size="15.5" fill="${C.ink}">${esc(line)}</text>`)
+    .map((line, i) => `<text x="${midX + 52}" y="${venueY + i * 19}" font-family="${KHMER.test(line) ? "'Hanuman', Poppins" : 'Poppins'}" font-weight="700" font-size="15.5" fill="${C.ink}">${esc(line)}</text>`)
     .join('')
   const areaY = venueY + (venueLines.length - 1) * 19 + 4
   const typeValue = group ? `Group of ${t.guests}` : 'Standard'
@@ -359,7 +359,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     ${icon('pin', midX + 18, py0 + 22, 22, C.wine, 2)}
     ${label(midX + 52, py0 + 34, 'EVENT VENUE')}
     ${venueSvg}
-    <text x="${midX + 52}" y="${areaY + 16}" font-family="${KHMER.test(ev.venueArea) ? "'Kantumruy Pro', Poppins" : 'Poppins'}" font-weight="400" font-size="13" fill="${C.muted}">${esc(ev.venueArea)}</text>
+    <text x="${midX + 52}" y="${areaY + 16}" font-family="${KHMER.test(ev.venueArea) ? "'Hanuman', Poppins" : 'Poppins'}" font-weight="400" font-size="13" fill="${C.muted}">${esc(ev.venueArea)}</text>
     ${icon('ticket', px0 + 20, py0 + row1 + 22, 22, C.wine, 2)}
     ${label(px0 + 54, py0 + row1 + 34, 'TICKET TYPE')}
     <text x="${px0 + 54}" y="${py0 + row1 + 58}" font-family="Poppins" font-weight="700" font-size="16.5" fill="${C.ink}">${esc(typeValue)}</text>
