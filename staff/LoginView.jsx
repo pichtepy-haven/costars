@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Eye, EyeOff, LoaderCircle, Lock, ScanLine, User } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, LoaderCircle, Lock, User } from 'lucide-react'
 import { callApi, describeError } from './api.js'
-import { DEMO_MODE } from './config.js'
-import { DEMO_LOGIN } from './demo.js'
 import { lastStaffId } from './session.js'
 import { Ornament, ShieldLock, StaffFooter, StaffHeader } from './Shell.jsx'
 
@@ -42,13 +40,6 @@ export default function LoginView({ notice, onLogin }) {
     }
   }
 
-  // "Scan Ticket Directly": log in (if both fields are filled) and go straight to the scanner.
-  const scanDirect = () => {
-    if (staffId.trim() && password) return submit()
-    setError('Log in first. The scanner opens straight after.')
-    ;(!staffId.trim() ? idRef : pwRef).current?.focus()
-  }
-
   return (
     <div className="st-page">
       <StaffHeader />
@@ -63,26 +54,6 @@ export default function LoginView({ notice, onLogin }) {
             Staff Access
           </h2>
           <p className="st-login__sub">Please log in to continue</p>
-
-          {DEMO_MODE ? (
-            <div className="st-preview" role="note">
-              <p>
-                <strong>Preview mode.</strong> Not connected to the ticket database yet. Log in with Staff ID{' '}
-                <b>{DEMO_LOGIN.staffId}</b> and password <b>{DEMO_LOGIN.password}</b>.
-              </p>
-              <button
-                type="button"
-                className="st-link"
-                onClick={() => {
-                  setStaffId(DEMO_LOGIN.staffId)
-                  setPassword(DEMO_LOGIN.password)
-                  setError('')
-                }}
-              >
-                Fill in demo login
-              </button>
-            </div>
-          ) : null}
 
           {notice ? (
             <p className="st-alert st-alert--info" role="status">
@@ -154,18 +125,7 @@ export default function LoginView({ notice, onLogin }) {
             </button>
           </form>
 
-          <div className="st-or" aria-hidden="true">
-            <span>OR</span>
-          </div>
-
-          <button type="button" className="st-direct" onClick={scanDirect} disabled={busy}>
-            <span className="st-direct__title">
-              <ScanLine aria-hidden="true" /> Scan Ticket Directly
-            </span>
-            <span className="st-direct__text">
-              The scanner opens as soon as you log in. No account? Ask the event coordinator for a Staff ID.
-            </span>
-          </button>
+          <p className="st-login__help">The scanner opens as soon as you log in. No Staff ID or password? Ask the event coordinator.</p>
         </section>
       </main>
       <StaffFooter />
