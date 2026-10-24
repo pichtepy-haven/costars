@@ -20,7 +20,6 @@ const KHQR_URL = '/api/khqr'
 const T = {
   en: {
     pageTitle: 'CoStars tickets',
-    eyebrow: 'Charity Mini Concert',
     title: 'Get your tickets',
     subtitle: 'Every ticket helps buy school supplies for children in need 💛',
     step1: 'Choose your ticket',
@@ -110,7 +109,6 @@ const T = {
   },
   km: {
     pageTitle: 'សំបុត្រ CoStars',
-    eyebrow: 'ការប្រគុំតន្ត្រីសប្បុរសធម៌',
     title: 'ទិញសំបុត្ររបស់អ្នក',
     subtitle: 'សំបុត្រនីមួយៗជួយទិញសម្ភារៈសិក្សាជូនកុមារដែលខ្វះខាត 💛',
     step1: 'ជ្រើសរើសសំបុត្រ',
@@ -322,7 +320,6 @@ function heroHtml(done = false) {
           <button type="button" data-lang="km" aria-pressed="${state.lang === 'km'}">ខ្មែរ</button>
         </div>
       </div>
-      <p class="hero__title">${esc(T[state.lang].eyebrow)}</p>
       <h1>${esc(T[state.lang][done ? 'thanksTitle' : 'title'])}</h1>
       <p class="hero__sub">${esc(T[state.lang][done ? 'thanksSub' : 'subtitle'])}</p>
       ${HERO_WAVE}
