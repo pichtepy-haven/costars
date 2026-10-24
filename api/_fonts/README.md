@@ -4,5 +4,5 @@
 
 * Poppins Regular, Medium, Bold and Italic: Copyright 2020 The Poppins Project Authors
   (https://github.com/itfoundry/Poppins), licensed under the SIL Open Font License 1.1 (`OFL.txt`).
-* Khmer names use Kantumruy Pro Bold (SIL OFL 1.1). The function downloads it from Google Fonts
-  the first time it is needed. To bundle it instead, put `KantumruyPro-Bold.ttf` in this folder.
+* Khmer names use Hanuman Bold (SIL OFL 1.1). The function downloads it from Google Fonts
+  the first time it is needed. To bundle it instead, put `Hanuman-Bold.ttf` in this folder.
