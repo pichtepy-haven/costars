@@ -246,7 +246,7 @@ Admin group: ✅ Approve + transaction ID ─▶ bot asks /api/ticket-image for 
 Ticket QR = https://costars-guide.vercel.app/t/<code>
   • guest scans it ─▶ ticket page
   • door staff scan it in /admin ─▶ checked in (a second scan says "Already used")
-  • staff with an ordinary phone browser ─▶ /staff ─▶ scan or type the code ─▶ checked in
+  • staff with an ordinary phone browser ─▶ /staff ─▶ log in ─▶ scan or type the code ─▶ checked in
 ```
 
 Files:
@@ -272,40 +272,51 @@ works on localhost).
 
 ---
 
-## 6c. Staff check-in page: `/staff` (preview)
+## 6c. Staff check-in page: `/staff`
 
-**https://costars-guide.vercel.app/staff**: the *Event Staff Login* screen from the
-*Ticket and Staff Check-In* mockup, for door staff using an ordinary phone browser (no
-Telegram needed). It isn't linked from the guide and is kept out of search results. React,
-like the guide: `staff.html` + `staff/`. It does not change the guide or the ticket pages.
+**https://costars-guide.vercel.app/staff**: check-in for door staff on an ordinary phone browser
+(no Telegram needed). It isn't linked from the guide and is kept out of search results. React,
+like the guide: `staff.html` + `staff/`. It talks to the CoStars bot (`staff/config.js`, the same
+`/exec` address as the ticket pages) and checks tickets in on the same Tickets tab as `/admin`.
+
+Who can log in: the **Staff tab** of the bot's Google Sheet. Rows that are active, with role
+`DOOR` or `ADMIN` and a password:
+
+| Column | What it is |
+| --- | --- |
+| `staff_id` | What staff type as Staff ID (S01, S02, ...). Their Telegram ID works too |
+| `password` | Type a password; the bot hides it (🔒) right away. To change it, type a new one. Empty = no website login |
+
+**CoStars Bot → Set up website staff login** adds both columns and gives every staff member
+without one a Staff ID and a starting password (readable until its first login).
 
 Flow at the door:
 
-1. **Log in** with Staff ID + password. The login stays on that phone for 18 hours or until *Log out*.
-2. **Scan** the ticket QR with the phone camera, or type the code if the QR won't scan. A QR
-   holding a link (like `…/t/<code>`) works too: the code is taken from the link.
+1. **Log in** with Staff ID + password. The scanner only opens after logging in. The login stays
+   on that phone for 18 hours or until *Log out*; a new password, `active` set to FALSE or a role
+   change ends it at once. Five wrong passwords lock that Staff ID for 10 minutes.
+2. **Scan** the ticket QR with the phone camera, or type the code printed under the QR
+   (`CS-0001-1`) if it won't scan. A QR must carry the bot's signature; a forged one is "not found".
 3. **See the result over the camera view:**
    - ✅ *Checked in*: holder, ticket type, code. Scanning resumes by itself after about 2.5 s.
    - ⚠️ *Already checked in*: the time and the staff member who checked it in.
-   - ❌ *Ticket not found*, or *Ticket not valid* (cancelled / refunded).
+   - ❌ *Ticket not found*, or *Ticket not valid* (cancelled).
    - *Not sent*, if there's no connection, with a *Try again* button.
 4. **Undo** your own check-in for up to 15 minutes, from the result or *Recent scans on this phone*.
-5. A live counter shows *Checked in X of Y* across all doors.
+5. A live counter shows *Checked in X of Y* across all doors (website and Telegram).
 
-**Status: preview mode.** Not connected to the ticket database yet. It runs with four sample
-tickets inside the browser (Staff ID `DEMO`, password `costars-demo`) and sends or saves
-nothing. To connect it, set `CHECKIN_API_URL` in `staff/config.js` (or the Vercel variable
-`VITE_CHECKIN_API_URL`). The page expects these actions, all as POST with a text/plain JSON body:
+Every login, check-in and undo is written to the Log tab. The bot side is `StaffWeb.gs`; the page
+sends these actions as POST with a text/plain JSON body:
 
 | Action | Sends | Gets back |
 | --- | --- | --- |
-| `login` | `staffId`, `password` | `token`, `staff {id, name}`, `expiresAt`, `stats {total, checkedIn}` |
-| `checkin` | `token`, `code` (the scanned text) | `result` (`checked_in` / `already_checked_in` / `not_found` / `not_valid`), `ticket {code, holder, type, order, status, checkedInAt, checkedInBy}`, `stats` |
-| `undo` | `token`, `code` | `result: "undone"`, `stats` |
-| `stats` | `token` | `staff`, `stats` |
+| `staff_login` | `staffId`, `password` | `token`, `staff {id, name}`, `expiresAt`, `stats {total, checkedIn}` |
+| `staff_checkin` | `token`, `code` (the scanned text) | `result` (`checked_in` / `already_checked_in` / `not_found` / `not_valid`), `ticket {code, holder, type, order, status, checkedInAt, checkedInBy}`, `stats` |
+| `staff_undo` | `token`, `code` | `result: "undone"`, `stats` |
+| `staff_stats` | `token` | `staff`, `stats` |
 
 Errors come back as `{ ok: false, error }` with `missing`, `invalid`, `locked` (+ `minutes`),
-`unauthorized`, `busy` or `undo_not_allowed`.
+`unauthorized`, `busy`, `undo_not_allowed` or `server`.
 
 Camera: the phone's built-in QR reader where there is one (Android Chrome). Otherwise, e.g. on
 iPhone, the `jsqr` package (Apache-2.0), which is downloaded only on those phones.
