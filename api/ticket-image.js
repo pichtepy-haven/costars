@@ -30,24 +30,24 @@ const exists = (p) => access(p).then(() => true, () => false)
 
 let khmerFontPath = null
 
-/** Kantumruy Pro Bold: bundled in api/_fonts, or downloaded once from Google Fonts and kept in /tmp. */
+/** Hanuman Bold (Khmer): bundled in api/_fonts, or downloaded once from Google Fonts and kept in /tmp. */
 async function khmerFont() {
   if (khmerFontPath) return khmerFontPath
-  for (const p of [join(FONT_DIR, 'KantumruyPro-Bold.ttf'), join(tmpdir(), 'costars-KantumruyPro-Bold.ttf')]) {
+  for (const p of [join(FONT_DIR, 'Hanuman-Bold.ttf'), join(tmpdir(), 'costars-Hanuman-Bold.ttf')]) {
     if (await exists(p)) return (khmerFontPath = p)
   }
   // Google Fonts sends TrueType files to clients it doesn't know as browsers.
   const agents = [undefined, 'Mozilla/5.0 (BB10; Touch) AppleWebKit/537.10+ (KHTML, like Gecko) Version/10.0.9.2372 Mobile Safari/537.10+']
   for (const ua of agents) {
     try {
-      const css = await fetchText('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@700', ua ? { 'User-Agent': ua } : {})
+      const css = await fetchText('https://fonts.googleapis.com/css2?family=Hanuman:wght@700', ua ? { 'User-Agent': ua } : {})
       const faces = css.split('@font-face').slice(1)
       const face = faces.find((f) => /khmer|U\+1780/i.test(f)) || faces[0] || ''
       const m = face.match(/url\((https:[^)]+)\)\s*format\(['"](?:truetype|opentype)['"]\)/)
       if (!m) continue
       const res = await fetchWithTimeout(m[1], {}, 8000)
       if (!res.ok) continue
-      const target = join(tmpdir(), 'costars-KantumruyPro-Bold.ttf')
+      const target = join(tmpdir(), 'costars-Hanuman-Bold.ttf')
       await writeFile(target, Buffer.from(await res.arrayBuffer()))
       return (khmerFontPath = target)
     } catch (err) {
