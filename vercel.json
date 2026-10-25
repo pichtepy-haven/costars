@@ -49,7 +49,7 @@
       ]
     },
     {
-      "source": "/(buy|admin)",
+      "source": "/(buy|donate|admin)",
       "headers": [
         {
           "key": "X-Robots-Tag",
