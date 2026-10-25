@@ -2,12 +2,14 @@
  * Ticket page (/t/<code>). This address is what the ticket QR holds, so a guest
  * who scans their own QR lands here. Door staff check guests in from the
  * check-in page in Telegram (/admin) or the staff page (/staff).
+ * The page shows just the ticket (no header): its Verified / Checked in shows the status.
+ * The language follows ?lang=, the guest's last choice on the ticket forms, or the phone.
  */
 import { apiGet } from './api.js'
 import { botLink } from './config.js'
 import { buildTicketSvg } from './ticket-svg.js'
 import { encodeQR } from './qr.js'
-import { applyWebTexts, esc, fill, icon, khDigits, logoHtml, savedLang, saveLang, toast } from './ui.js'
+import { applyWebTexts, esc, fill, icon, khDigits, savedLang, toast } from './ui.js'
 
 const T = {
   en: {
@@ -102,17 +104,6 @@ async function load({ quiet = false } = {}) {
   }
 }
 
-function topbar() {
-  return `
-    <div class="topbar">
-      ${logoHtml()}
-      <div class="lang lang--light" role="group" aria-label="Language">
-        <button type="button" data-lang="en" aria-pressed="${state.lang === 'en'}">EN</button>
-        <button type="button" data-lang="km" aria-pressed="${state.lang === 'km'}">ខ្មែរ</button>
-      </div>
-    </div>`
-}
-
 function ticketSvg(d) {
   const tk = d.ticket
   const ev = d.event || {}
@@ -143,16 +134,7 @@ function render() {
   const checked = tk.status === 'CHECKED_IN'
   const group = tk.guests > 1
   app.innerHTML = `
-    ${topbar()}
-    <div class="status ${checked ? 'status--in' : 'status--ok'} rise" role="status">
-      <span class="status__icon">${icon(checked ? 'heart' : 'checkCircle')}</span>
-      <div>
-        <b>${checked ? t('checked', { time: tk.checkedInAt }) : esc(T[state.lang].valid)}</b>
-        <span>${br(esc(T[state.lang][checked ? 'checkedSub' : 'validSub']))}</span>
-      </div>
-      ${group ? `<span class="badge badge--wine">${t('guestOf', { n: n(tk.guestNo), total: n(tk.guests) })}</span>` : ''}
-    </div>
-    <figure class="ticket rise" style="animation-delay:.05s" role="button" tabindex="0" aria-label="${esc(T[state.lang].tapHint)}">${ticketSvg(d)}</figure>
+    <figure class="ticket rise" role="button" tabindex="0" aria-label="${esc(T[state.lang].tapHint)}">${ticketSvg(d)}</figure>
     ${checked ? '' : `<p class="center muted small" style="margin:2px 0 12px">${icon('scan', 'style="display:inline;width:15px;height:15px;vertical-align:-2px;margin-right:4px"')}${esc(T[state.lang].tapHint)}</p>`}
     <div class="actions">
       <a class="btn btn--light" href="/api/ticket-image?c=${encodeURIComponent(d.code)}&s=2&download=1" download="CoStars-ticket-${esc(tk.id)}.png" id="save">${icon('download')}${esc(T[state.lang].save)}</a>
@@ -166,7 +148,6 @@ function render() {
 function renderError() {
   const net = state.error === 'network'
   app.innerHTML = `
-    ${topbar()}
     <div class="state card rise">
       <div class="state__icon">${icon(net ? 'alert' : 'ticket')}</div>
       <h2>${esc(T[state.lang][net ? 'netError' : 'notFound'])}</h2>
@@ -177,14 +158,6 @@ function renderError() {
 }
 
 function bind() {
-  document.querySelectorAll('[data-lang]').forEach((b) =>
-    b.addEventListener('click', () => {
-      if (state.lang === b.dataset.lang) return
-      state.lang = b.dataset.lang
-      saveLang(state.lang)
-      render()
-    }),
-  )
   const retry = $('#retry')
   if (retry) retry.addEventListener('click', () => load())
   const cal = $('#cal')

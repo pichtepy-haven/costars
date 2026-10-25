@@ -808,38 +808,13 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 
 /* --------------------------------------------------------------- ticket page */
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 0 4px;
-}
-.topbar .brand-mark { --logo-size: 25px; }
-
-.status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-}
-.status--ok { background: var(--green-tint); border-color: #cfe5ca; color: #24572a; }
-.status--in { background: linear-gradient(120deg, #fbefd9, #f7e2c4); border-color: #ecd3a8; color: var(--amber-ink); }
-.status__icon { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.7); }
-.status__icon svg { width: 22px; height: 22px; }
-.status b { display: block; font-family: var(--font-display); font-weight: 600; font-size: 15.5px; line-height: 1.4; }
-.status span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.45; }
-.status > div { flex: 1; min-width: 0; }
 
 /* Khmer has marks above and below the letters, so its lines need a little more height */
-[lang='km'] :is(.fact b, .fact span, .choice__name, .choice__desc, .qty__label, .qty__hint, .pay__ticket, .status b, .status span, .notice) { line-height: 1.55; }
-.status .badge { align-self: flex-start; }
+[lang='km'] :is(.fact b, .fact span, .choice__name, .choice__desc, .qty__label, .qty__hint, .pay__ticket, .notice) { line-height: 1.55; }
 
+/* The ticket page shows just the ticket, from the top of the screen */
 .ticket {
-  margin: 10px -8px 0;
+  margin: calc(14px + env(safe-area-inset-top)) -8px 0;
   filter: drop-shadow(0 10px 20px rgba(90, 58, 42, 0.08));
 }
 .ticket svg { width: 100%; height: auto; }
