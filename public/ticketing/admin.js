@@ -195,8 +195,8 @@ function recentItems(list) {
 function salesHtml() {
   const s = state.me.sales
   if (!s) return ''
-  const tile = (label, value, sub, iconName) => `
-    <div class="tile">${icon(iconName)}<span>${label}</span><b>${value}</b>${sub ? `<small>${sub}</small>` : ''}</div>`
+  const tile = (label, value, sub, iconName, wide = false) => `
+    <div class="tile"${wide ? ' style="grid-column: 1 / -1"' : ''}>${icon(iconName)}<span>${label}</span><b>${value}</b>${sub ? `<small>${sub}</small>` : ''}</div>`
   return `
     <section class="section">
       <div class="section__head">${icon('chart', 'class="head-icon"')}<h2>Sales</h2><span class="badge ${s.salesOpen ? 'badge--green' : 'badge--red'}" style="margin-left:auto">${s.salesOpen ? 'Open' : 'Closed'}</span></div>
@@ -205,6 +205,7 @@ function salesHtml() {
         ${tile('Ticket money', esc(s.money), plural(s.paidOrders, 'paid order'), 'wallet')}
         ${tile('Group promotion', `${s.groupsSold} / ${s.groupTotal}`, `${Math.max(s.groupTotal - s.groupsSold, 0)} left`, 'ticket')}
         ${tile('To check', `${s.pending}`, `receipts, ${s.awaiting} waiting to pay`, 'receipt')}
+        ${s.donationMoney !== undefined ? tile('Donations', esc(s.donationMoney), `${plural(s.donations, 'confirmed donation')}`, 'heart', true) : ''}
       </div>
       <p class="muted small" style="margin:8px 2px 0">Approve receipts in the admin group as usual</p>
     </section>`
