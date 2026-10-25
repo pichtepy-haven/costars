@@ -224,7 +224,7 @@ variable `VITE_SHOW_PLACEHOLDERS` = `true` for the *Preview* environment in Verc
 
 ---
 
-## 6b. Tickets: form, ticket pages and the door check point
+## 6b. Tickets and donations: forms, ticket pages and the door check point
 
 These pages work together with the CoStars Telegram bot (Google Apps Script). They are
 plain HTML + JavaScript in `public/`, so Vite copies them as they are, and they do not
@@ -233,16 +233,19 @@ change the event guide.
 | Address | What it is | Opened from |
 | --- | --- | --- |
 | `/buy` | Ticket form (Standard with how many tickets, or Group; name, phone). Sending it creates the order; the page then shows the order number, the amount and the KHQR to pay, and the bot sends the KHQR in the chat too | Bot: welcome button, 🎟 Buy tickets key, 🎟 Tickets button next to the message box |
+| `/donate` | Donation form: choose an amount (Settings → `donation_amounts` in the bot's Sheet) or type one, name optional. Sending it creates a donation number (DN-0001); the page then shows it with the donation KHQR, and the bot sends the KHQR in the chat too. Opened in a normal browser, it shows the donation KHQR to scan and a button to donate in the bot | Bot: 💝 Make a Donation key, `/donate`, `t.me/CoStarsConcertBot?start=donate` |
 | `/t/<code>` | The guest's ticket page with the designed ticket, live status, Save image, Add to calendar | The QR on every ticket, and 🎫 Open my ticket under each ticket photo |
 | `/admin` | Door check point: Telegram QR scanner, live checked-in count, latest check-ins, search and check in by hand, sales for admins | Staff send `/admin` (or `/scan`) to the bot in a private chat |
 | `/api/ticket-image?c=<code>` | The designed ticket as a PNG (the bot sends this picture). `?demo=1` shows a sample | The bot, and Save image |
-| `/api/khqr` | The ticket KHQR as a picture (`?download=1` saves it as CoStars-KHQR.jpg) | The ticket form after ordering, and Save QR |
+| `/api/khqr` | The ticket KHQR as a picture (`?download=1` saves it as CoStars-KHQR.jpg). `?for=donation` gives the donation KHQR (the ticket one when no donation KHQR is set) | The ticket and donation forms, and Save QR |
 
 How it fits together:
 
 ```
 Customer ─ Telegram bot ─▶ /buy (form) ─▶ bot creates order ─▶ KHQR on the page and in chat ─▶ receipt photo
 Admin group: ✅ Approve + transaction ID ─▶ bot asks /api/ticket-image for each ticket ─▶ framed ticket in chat
+Donor ─ Telegram bot ─▶ /donate (or amounts in the chat) ─▶ DN-0001 ─▶ KHQR ─▶ receipt photo
+Admin group: the same card with ✅ Approve + transaction ID ─▶ thank-you to the donor (Donations tab, /stats)
 Ticket QR = https://costars-guide.vercel.app/t/<code>
   • guest scans it ─▶ ticket page
   • door staff scan it in /admin ─▶ checked in (a second scan says "Already used")
@@ -254,11 +257,19 @@ Files:
 - `public/ticketing/config.js`: **`API_URL`** = the bot's web app address (Apps Script →
   Deploy → Manage deployments, ends with `/exec`) and the bot's username.
 - `public/ticketing/ticket-svg.js`: the ticket artwork (shared by the ticket page and the PNG).
-- `public/ticketing/buy.js`, `ticket-page.js`, `admin.js`: the three pages. `app.css`, `admin.css`: their styles.
+- `public/ticketing/buy.js`, `donate.js`, `ticket-page.js`, `admin.js`: the pages. `app.css`, `admin.css`: their styles.
 - `api/ticket-image.js` + `api/_fonts/`: draws the PNG with resvg (`@resvg/resvg-js`).
-- `api/khqr.js`: the ticket KHQR as a picture for the form (from the bot's `?action=khqr`, the photo set with `/setkhqr ticket`). Cached by Vercel for 5 minutes.
+- `api/khqr.js`: the KHQR as a picture for the forms (from the bot's `?action=khqr`, the photos set with `/setkhqr ticket` and `/setkhqr donation`). Cached by Vercel for 5 minutes.
 
-Security: nothing secret is in the website. Orders and check-ins only work from pages
+Donations work like ticket orders: the donor sends the receipt photo in the chat, the admin
+group gets the same card (💝 Donation DN-0001), and ✅ Approve asks for the bank transaction ID
+(one transaction can't be used for two things). The donor then gets a thank-you. A donation can
+be any amount: if a different amount arrived, approve it and correct the amount in the Donations
+tab. /stats, the Summary tab and the sales tiles on `/admin` show the confirmed donations.
+The donation form's wording is in the Web texts tab (`donate.…` rows); the bot's in the Texts tab
+(`donate_…` rows).
+
+Security: nothing secret is in the website. Orders, donations and check-ins only work from pages
 opened inside Telegram (Telegram signs every request and the bot checks the Staff tab).
 Ticket codes carry the bot's signature, so ticket pages cannot be guessed.
 
@@ -267,7 +278,7 @@ and paste `https://costars-guide.vercel.app`. Type `OFF` there to go back to buy
 chat with plain QR codes.
 
 Testing on your computer: `npm run dev`, then open
-`http://localhost:5173/buy.html?api=<a test bot /exec address>` (the `api` override only
+`http://localhost:5173/buy.html?api=<a test bot /exec address>` (or `donate.html`; the `api` override only
 works on localhost).
 
 ---
