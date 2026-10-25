@@ -40,16 +40,29 @@ export function icon(name, extra = '') {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${PATHS[name] || ''}</svg>`
 }
 
-/** The five-point star that replaces the “a” in “CoStars” (same as the event guide's StarGlyph). */
-export const STAR = '<svg class="brand-mark__star" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.6 14.76 9.4 21.13 10.23 16.47 14.65 17.64 20.97 12 17.9 6.36 20.97 7.53 14.65 2.87 10.23 9.24 9.4Z" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>'
+/*
+ * The CoStars logo as paths, the same as the event guide's BrandMark (src/components/BrandMark.jsx):
+ * “Co” over “St★rs” in Poppins Bold, the second line a little larger, a rounded star. Where “Co”
+ * overlaps “St”, the letters of “Co” cut a thin gap (a mask, so any background shows through).
+ */
+const LOGO_CO = 'M24.17 0Q32.69 0 38.75 4.5Q44.82 9 46.86 16.77H34.05Q32.62 13.77 29.99 12.2Q27.37 10.63 24.03 10.63Q18.64 10.63 15.3 14.38Q11.96 18.13 11.96 24.4Q11.96 30.67 15.3 34.42Q18.64 38.17 24.03 38.17Q27.37 38.17 29.99 36.6Q32.62 35.04 34.05 32.04H46.86Q44.82 39.81 38.75 44.27Q32.69 48.74 24.17 48.74Q17.21 48.74 11.73 45.64Q6.24 42.53 3.17 37.01Q0.1 31.49 0.1 24.4Q0.1 17.31 3.17 11.76Q6.24 6.2 11.73 3.1Q17.21 0 24.17 0ZM47.18 29.38Q47.18 23.52 49.77 19.05Q52.36 14.59 56.86 12.2Q61.36 9.82 66.95 9.82Q72.54 9.82 77.04 12.2Q81.53 14.59 84.12 19.05Q86.71 23.52 86.71 29.38Q86.71 35.24 84.09 39.71Q81.47 44.17 76.93 46.56Q72.4 48.94 66.81 48.94Q61.22 48.94 56.76 46.56Q52.29 44.17 49.74 39.74Q47.18 35.31 47.18 29.38ZM74.85 29.38Q74.85 24.81 72.57 22.36Q70.29 19.9 66.95 19.9Q63.54 19.9 61.29 22.32Q59.04 24.74 59.04 29.38Q59.04 33.95 61.26 36.4Q63.47 38.85 66.81 38.85Q70.15 38.85 72.5 36.4Q74.85 33.95 74.85 29.38Z'
+const LOGO_ST = 'M0 84.07H13.3Q13.59 86.92 15.27 88.42Q16.95 89.92 19.65 89.92Q22.43 89.92 24.03 88.64Q25.64 87.36 25.64 85.1Q25.64 83.2 24.36 81.96Q23.08 80.71 21.22 79.91Q19.36 79.11 15.93 78.08Q10.96 76.55 7.82 75.02Q4.68 73.48 2.41 70.49Q0.15 67.49 0.15 62.67Q0.15 55.51 5.33 51.46Q10.52 47.4 18.85 47.4Q27.32 47.4 32.51 51.46Q37.7 55.51 38.06 62.74H24.55Q24.4 60.26 22.72 58.83Q21.04 57.41 18.41 57.41Q16.14 57.41 14.76 58.62Q13.37 59.82 13.37 62.09Q13.37 64.57 15.71 65.96Q18.04 67.35 23.01 68.95Q27.98 70.63 31.08 72.17Q34.19 73.7 36.45 76.62Q38.72 79.55 38.72 84.15Q38.72 88.53 36.49 92.11Q34.26 95.69 30.02 97.81Q25.79 99.93 20.02 99.93Q14.39 99.93 9.94 98.1Q5.48 96.27 2.81 92.69Q0.15 89.12 0 84.07ZM64.24 88.82V99.42H57.88Q51.09 99.42 47.29 96.09Q43.49 92.77 43.49 85.24V69.03H38.52V58.65H43.49V48.72H55.98V58.65H64.16V69.03H55.98V85.39Q55.98 87.22 56.86 88.02Q57.73 88.82 59.78 88.82Z'
+const LOGO_RS_STAR = 'M135.01 58.21V71.44H131.58Q126.9 71.44 124.57 73.45Q122.23 75.45 122.23 80.49V99.42H109.74V58.65H122.23V65.45Q124.42 62.09 127.71 60.15Q130.99 58.21 135.01 58.21ZM133.94 86.05H146.28Q146.5 88.17 148.26 89.48Q150.01 90.8 152.57 90.8Q154.9 90.8 156.18 89.88Q157.46 88.97 157.46 87.51Q157.46 85.75 155.63 84.91Q153.81 84.07 149.72 83.05Q145.33 82.03 142.41 80.9Q139.49 79.76 137.37 77.32Q135.25 74.87 135.25 70.71Q135.25 67.2 137.19 64.31Q139.12 61.43 142.89 59.75Q146.65 58.07 151.83 58.07Q159.51 58.07 163.93 61.87Q168.34 65.67 169 71.95H157.46Q157.17 69.83 155.6 68.59Q154.03 67.35 151.47 67.35Q149.28 67.35 148.11 68.19Q146.94 69.03 146.94 70.49Q146.94 72.24 148.8 73.12Q150.67 73.99 154.61 74.87Q159.14 76.04 161.99 77.17Q164.84 78.3 166.99 80.82Q169.15 83.34 169.22 87.58Q169.22 91.16 167.21 93.97Q165.2 96.79 161.44 98.39Q157.68 100 152.71 100Q147.38 100 143.21 98.17Q139.05 96.35 136.64 93.17Q134.23 89.99 133.94 86.05ZM84.89 59.91A2.08 2.08 0 0 1 88.62 59.91L94.04 70.94L106.21 72.69A2.08 2.08 0 0 1 107.36 76.24L98.55 84.81L100.64 96.92A2.08 2.08 0 0 1 97.62 99.11L86.75 93.38L75.88 99.11A2.08 2.08 0 0 1 72.86 96.92L74.95 84.81L66.14 76.24A2.08 2.08 0 0 1 67.3 72.69L79.46 70.94Z'
+let logoCount = 0
+
+/** The logo's SVG (a new mask id each time, so several logos can share a page). */
+export function logoSvg() {
+  const cut = `brand-cut-${++logoCount}`
+  return `<svg viewBox="0 0 169.22 100" aria-hidden="true" focusable="false"><defs><mask id="${cut}" maskUnits="userSpaceOnUse" x="-5" y="-5" width="179.22" height="110"><rect x="-5" y="-5" width="179.22" height="110" fill="#fff"/><path d="${LOGO_CO}" fill="#000" stroke="#000" stroke-width="5.06" stroke-linejoin="round"/></mask></defs><g fill="currentColor"><path d="${LOGO_CO}"/><path d="${LOGO_ST}" mask="url(#${cut})"/><path d="${LOGO_RS_STAR}"/></g></svg>`
+}
 
 /**
- * CoStars word mark, the same as the event guide's BrandMark: “Co” over “St★rs”.
+ * CoStars logo, the same as the event guide's BrandMark: “Co” over “St★rs”.
  * tone: 'dark' (charcoal, on light backgrounds) or 'light' (white, on the stage hero).
  * With href it is a link; without, just the mark.
  */
 export function logoHtml(href = '', tone = 'dark') {
-  const mark = `<span class="brand-mark__line" aria-hidden="true">Co</span><span class="brand-mark__line" aria-hidden="true">St${STAR}rs</span>`
+  const mark = logoSvg()
   const cls = `brand-mark brand-mark--${tone === 'light' ? 'light' : 'dark'}`
   return href
     ? `<a class="${cls}" href="${href}" aria-label="CoStars">${mark}</a>`

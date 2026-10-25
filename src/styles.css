@@ -143,33 +143,20 @@ img {
 }
 
 /* --------------------------------------------------------------- brand */
+/* The logo (BrandMark.jsx) is drawn as paths: --logo-size sets its size like a font size. */
 .brand-mark {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading);
+  display: inline-block;
   font-size: var(--logo-size, 25px);
-  line-height: 0.8;
-  letter-spacing: -0.055em;
+  line-height: 0;
   color: var(--charcoal);
-  white-space: nowrap;
+}
+.brand-mark svg {
+  display: block;
+  width: 2.54em;
+  height: 1.5em;
 }
 .brand-mark--light {
   color: #fff;
-}
-.brand-mark--inline {
-  flex-direction: row;
-}
-.brand-mark__line {
-  display: block;
-}
-.brand-mark__star {
-  display: inline-block;
-  width: 0.64em;
-  height: 0.64em;
-  margin: 0 0.012em 0 0.005em;
-  vertical-align: -0.035em;
 }
 
 /* --------------------------------------------------------------- header */

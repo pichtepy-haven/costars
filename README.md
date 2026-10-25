@@ -153,8 +153,11 @@ to find everything still open.
    act icon and the musicians silhouette from the proposal). That way no stock image is
    presented as the real performers.
 
-The logo is drawn in code (`src/components/BrandMark.jsx`, Poppins Bold + star). Brand
-colours and fonts are at the top of `src/styles.css` and in `tailwind.config.js`.
+The logo is drawn as paths, rebuilt from the logo artwork: “Co” over “St★rs” in Poppins Bold,
+the second line a little larger, a rounded star, and a thin gap where “Co” overlaps “St”. It is in
+`src/components/BrandMark.jsx` (guide and staff page) and `public/ticketing/ui.js` (ticket pages);
+`--logo-size` sets its size like a font size. Brand colours and fonts are at the top of
+`src/styles.css` and in `tailwind.config.js`.
 
 ---
 
@@ -357,7 +360,7 @@ iPhone, the `jsqr` package (Apache-2.0), which is downloaded only on those phone
 | Charcoal | `#342d2d` | Text, primary buttons, open accordion header |
 | Dark red | `#810102` | Brand accent, action buttons, icons |
 | Amber | `#d69a3c` | Break / intermission dots |
-| Logo & headings | Poppins ExtraBold 800 | CoStars logo, page and banner titles, big numbers |
+| Headings | Poppins ExtraBold 800 | Page and banner titles, big numbers (the logo itself is drawn as paths, from Poppins Bold) |
 | Section titles | Poppins SemiBold 600 | Section headings, card and list item titles |
 | Body text | Cabin Regular 400 | Descriptions, times, notes, details |
 | Buttons & labels | Cabin Medium 500 | Buttons, chips, quick links, tags, small caps labels |

@@ -145,29 +145,16 @@ h2 { font-size: 17px; font-weight: 600; }
   justify-content: space-between;
   gap: 12px;
 }
-/* CoStars word mark: the same as the event guide's BrandMark (src/styles.css), Co over St★rs */
+/* CoStars logo (ui.js logoSvg), the same as the event guide's BrandMark: --logo-size sets its size like a font size */
 .brand-mark {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  font-family: 'Poppins', 'Kantumruy Pro', sans-serif;
-  font-weight: 800;
+  display: inline-block;
   font-size: var(--logo-size, 25px);
-  line-height: 0.8;
-  letter-spacing: -0.055em;
+  line-height: 0;
   color: var(--charcoal);
-  white-space: nowrap;
   text-decoration: none;
 }
+.brand-mark svg { display: block; width: 2.54em; height: 1.5em; }
 .brand-mark--light { color: #fff; }
-.brand-mark__line { display: block; }
-.brand-mark__star {
-  display: inline-block;
-  width: 0.64em;
-  height: 0.64em;
-  margin: 0 0.012em 0 0.005em;
-  vertical-align: -0.035em;
-}
 a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 4px; }
 .hero .brand-mark { --logo-size: 27px; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35)); }
 .hero h1 {
