@@ -1,16 +1,17 @@
 /**
  * The designed CoStars ticket as a PNG picture.
  *
- *   GET /api/ticket-image?c=<ticket code>          picture the bot sends in Telegram (640 × 1320)
- *   GET /api/ticket-image?c=<code>&s=2&download=1  "Save image" on the ticket page (1280 × 2640)
+ *   GET /api/ticket-image?c=<ticket code>          picture the bot sends in Telegram (640 × 1180)
+ *   GET /api/ticket-image?c=<code>&s=2&download=1  "Save image" on the ticket page (1280 × 2360)
  *   GET /api/ticket-image?demo=1                   sample ticket, to check the design after a deploy
  *   GET /api/ticket-image?check=1                  {ok, api}: lets the bot check this website talks to it
  *
  * The ticket code is signed by the bot, so the details come from the bot
  * (Apps Script ?action=ticket) and nobody can make a picture of another ticket.
- * The drawing is the same one the ticket page shows (public/ticketing/ticket-svg.js).
+ * The drawing is the same one the ticket page shows (public/ticketing/ticket-svg.js), on the
+ * designed background public/ticketing/ticket-bg.jpg.
  */
-import { access, writeFile } from 'node:fs/promises'
+import { access, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,7 +20,11 @@ import { API_URL, SITE_URL } from '../public/ticketing/config.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const FONT_DIR = join(HERE, '_fonts')
-const POPPINS = ['Poppins-Regular.ttf', 'Poppins-Medium.ttf', 'Poppins-Bold.ttf', 'Poppins-Italic.ttf'].map((f) => join(FONT_DIR, f))
+const FONTS = [
+  'Poppins-Regular.ttf', 'Poppins-Medium.ttf', 'Poppins-Bold.ttf', 'Poppins-Italic.ttf',
+  'Cabin-Regular.ttf', 'Cabin-Medium.ttf', 'Cabin-Bold.ttf',
+].map((f) => join(FONT_DIR, f))
+const BACKGROUND = join(HERE, '..', 'public', 'ticketing', 'ticket-bg.jpg')
 const BOT_API = process.env.COSTARS_API_URL || API_URL
 const CODE = /^(\d{4,6}-\d{1,2})_([A-Za-z0-9_-]{12})$/
 const KHMER = /[ក-៿᧠-᧿]/
@@ -55,6 +60,32 @@ async function khmerFont() {
     }
   }
   return null
+}
+
+/* ---------------------------------------------------------- background */
+
+let backgroundHref = null
+
+/**
+ * The ticket background as a data: URL, kept for the life of the instance: the copy bundled with
+ * this function, or else the one on the website. Without it the ticket still draws, on white.
+ */
+async function background() {
+  if (backgroundHref) return backgroundHref
+  let bytes = null
+  try {
+    bytes = await readFile(BACKGROUND)
+  } catch {
+    try {
+      const res = await fetchWithTimeout(`${SITE_URL}/ticketing/ticket-bg.jpg`, {}, 8000)
+      if (res.ok) bytes = Buffer.from(await res.arrayBuffer())
+    } catch (err) {
+      console.error('ticket background missing:', err && err.message)
+    }
+  }
+  if (!bytes) return ''
+  backgroundHref = 'data:image/jpeg;base64,' + bytes.toString('base64')
+  return backgroundHref
 }
 
 /* ---------------------------------------------------------- helpers */
@@ -105,7 +136,7 @@ async function ticketFromBot(code) {
       type: tk.type,
       status: tk.status,
       checkedInAt: tk.checkedInAt,
-      event: { dateLabel: ev.dateLabel || undefined, timeLabel: ev.time || undefined, venue: ev.venue || undefined, venueArea: ev.venueArea || undefined },
+      event: { ymd: ev.ymd || undefined, dateLabel: ev.dateLabel || undefined, timeLabel: ev.time || undefined, venue: ev.venue || undefined, venueArea: ev.venueArea || undefined },
     },
   }
 }
@@ -157,10 +188,10 @@ export default async function handler(req, res) {
 
   try {
     const scale = Math.min(3, Math.max(1, Math.round(Number(q.get('s')) || 1)))
-    const svg = buildTicketSvg(ticket)
-    const fonts = POPPINS.slice()
+    const svg = buildTicketSvg(ticket, { background: await background() })
+    const fonts = FONTS.slice()
     const ev = ticket.event || {}
-    if (KHMER.test(`${ticket.name} ${ev.venue || ''} ${ev.venueArea || ''}`)) {
+    if (KHMER.test(`${ticket.name} ${ev.venue || ''} ${ev.venueArea || ''} ${ev.dateLabel || ''} ${ev.timeLabel || ''}`)) {
       const k = await khmerFont()
       if (k) fonts.push(k)
     }

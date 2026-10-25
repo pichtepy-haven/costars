@@ -9,7 +9,7 @@
   ],
   "functions": {
     "api/ticket-image.js": {
-      "includeFiles": "api/_fonts/**",
+      "includeFiles": "{api/_fonts/**,public/ticketing/ticket-bg.jpg}",
       "maxDuration": 30
     },
     "api/khqr.js": {

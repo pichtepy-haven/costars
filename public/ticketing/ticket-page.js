@@ -127,7 +127,7 @@ function ticketSvg(d) {
       type: tk.type,
       status: tk.status,
       checkedInAt: tk.checkedInAt,
-      event: { dateLabel: ev.dateLabel || undefined, timeLabel: ev.time || undefined, venue: ev.venue || undefined, venueArea: ev.venueArea || undefined },
+      event: { ymd: ev.ymd || undefined, dateLabel: ev.dateLabel || undefined, timeLabel: ev.time || undefined, venue: ev.venue || undefined, venueArea: ev.venueArea || undefined },
     },
     { transparent: true, title: `CoStars ticket ${tk.id} for ${tk.name}` },
   )

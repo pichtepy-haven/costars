@@ -256,7 +256,10 @@ Files:
 
 - `public/ticketing/config.js`: **`API_URL`** = the bot's web app address (Apps Script →
   Deploy → Manage deployments, ends with `/exec`) and the bot's username.
-- `public/ticketing/ticket-svg.js`: the ticket artwork (shared by the ticket page and the PNG).
+- `public/ticketing/ticket-svg.js`: the ticket drawing (shared by the ticket page and the PNG): the designed
+  background with only the live parts on top (holder name, QR, ticket code, Verified / Checked in, Event Date,
+  Event Venue, With Sincere Appreciation). Date, time and venue come from the bot's Settings. The background is
+  `public/ticketing/ticket-bg.jpg` (the ticket page cuts it to the ticket's outline; the PNG puts it on white).
 - `public/ticketing/buy.js`, `donate.js`, `ticket-page.js`, `admin.js`: the pages. `app.css`, `admin.css`: their styles.
 - `api/ticket-image.js` + `api/_fonts/`: draws the PNG with resvg (`@resvg/resvg-js`).
 - `api/khqr.js`: the KHQR as a picture for the forms (from the bot's `?action=khqr`, the photos set with `/setkhqr ticket` and `/setkhqr donation`). Cached by Vercel for 5 minutes.
