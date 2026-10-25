@@ -1,10 +1,12 @@
 /**
- * The KHQR for paying for tickets, as a picture, for the ticket form (/buy).
+ * The KHQR as a picture, for the ticket form (/buy) and the donation form (/donate).
  *
- *   GET /api/khqr              the picture (JPEG, as Telegram stores photos)
- *   GET /api/khqr?download=1   the same picture, saved as CoStars-KHQR.jpg
+ *   GET /api/khqr                           the ticket KHQR (JPEG, as Telegram stores photos)
+ *   GET /api/khqr?download=1                the same picture, saved as CoStars-KHQR.jpg
+ *   GET /api/khqr?for=donation              the donation KHQR (the ticket KHQR when there is none)
+ *   GET /api/khqr?for=donation&download=1   saved as CoStars-donation-KHQR.jpg
  *
- * It is the KHQR an admin gave the bot with /setkhqr ticket. The bot hands it over as a
+ * They are the KHQRs an admin gave the bot with /setkhqr ticket and /setkhqr donation. The bot hands it over as a
  * data URL (Apps Script ?action=khqr); this turns it into a normal picture address, so the
  * form can show it, Vercel can cache it and customers can save it to their phone.
  */
@@ -32,9 +34,10 @@ function sendJson(res, status, body) {
 
 export default async function handler(req, res) {
   const url = new URL(req.url, 'http://localhost')
+  const donation = url.searchParams.get('for') === 'donation'
   let info
   try {
-    const answer = await fetchWithTimeout(`${BOT_API}?action=khqr`)
+    const answer = await fetchWithTimeout(`${BOT_API}?action=khqr${donation ? '&which=donation' : ''}`)
     if (!answer.ok) throw new Error(`HTTP ${answer.status}`)
     info = JSON.parse(await answer.text())
   } catch (err) {
@@ -53,6 +56,6 @@ export default async function handler(req, res) {
   // Vercel keeps the picture for 5 minutes and serves the old one while it fetches a new
   // one, so a KHQR changed with /setkhqr shows on the form within a few minutes.
   res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400')
-  if (url.searchParams.has('download')) res.setHeader('Content-Disposition', `attachment; filename="CoStars-KHQR.${ext}"`)
+  if (url.searchParams.has('download')) res.setHeader('Content-Disposition', `attachment; filename="CoStars-${donation ? 'donation-' : ''}KHQR.${ext}"`)
   res.end(bytes)
 }
