@@ -356,6 +356,49 @@ a.brand-mark:focus-visible { outline: 2px solid currentColor; outline-offset: 4p
 [lang='km'] .qty__label { font-size: 13px; }
 .qty__error { flex-basis: 100%; margin-top: 0; }
 
+/* promo code: the first thing in the panel, right under the Standard ticket price */
+.promo { flex-basis: 100%; min-width: 0; padding-bottom: 12px; border-bottom: 1px dashed #e3d6cc; }
+.promo__label { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font: 600 13px/1.4 var(--font-display); color: var(--charcoal); }
+.promo__label svg { width: 15px; height: 15px; flex: none; color: var(--wine); }
+.promo__row { display: flex; gap: 8px; align-items: stretch; }
+.promo__input { flex: 1; min-width: 0; min-height: 42px; padding: 9px 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.promo__input::placeholder { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.promo__apply { flex: none; min-height: 42px; padding-left: 16px; padding-right: 16px; }
+.promo .field__error { margin-top: 6px; }
+.promo__on {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 7px 6px 7px 10px;
+  border-radius: 10px;
+  background: var(--green-tint);
+  color: var(--green);
+  font: 600 13px/1.45 var(--font-display);
+  animation: drop 0.25s var(--ease-out) both;
+}
+.promo__on svg { width: 16px; height: 16px; flex: none; }
+.promo__on span { flex: 1; min-width: 0; }
+.promo__remove {
+  flex: none;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12.5px/1 var(--font-display);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.promo__remove:hover { background: rgba(47, 122, 53, 0.1); color: var(--green); }
+[lang='km'] :is(.promo__label, .promo__on) { line-height: 1.6; }
+.choice__price .choice__was { display: block; font-size: 13px; font-weight: 500; line-height: 1.2; color: var(--muted); }
+.total__was { margin-right: 6px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.pay__fact dd > .badge { color: var(--green); }
+.pay__fact .badge svg { width: 12px; height: 12px; }
+
 .stepper {
   flex: none;
   display: inline-flex;
