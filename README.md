@@ -275,6 +275,16 @@ tab. /stats, the Summary tab and the sales tiles on `/admin` show the confirmed 
 The donation form's wording is in the Web texts tab (`donate.…` rows); the bot's in the Texts tab
 (`donate_…` rows).
 
+Promo code (Standard tickets only): `/buy` shows a **Promo code** box right under the Standard
+ticket. The right code (Settings → `promo_code`, `COSTARS`; capitals or spaces don't matter) takes
+`promo_discount` ($2) off each Standard ticket, so the card shows ~~$8~~ $6 and the total follows.
+Only `promo_limit` (200) promo tickets are sold: when that many are **paid**, the box disappears and
+Standard tickets are $8 again. The bot checks the code and the count again when the order is sent,
+saves it in the Orders tab's `promo` column, shows it on the admin card, in /stats and in the Summary
+tab (Promo tickets paid), and tells the admin group when the promo is finished. The page only gets a
+fingerprint (SHA-256) of the code, never the code itself. Empty `promo_code` turns the promo off.
+The box's wording is in the Web texts tab (`form.promo…` rows).
+
 Security: nothing secret is in the website. Orders, donations and check-ins only work from pages
 opened inside Telegram (Telegram signs every request and the bot checks the Staff tab).
 Ticket codes carry the bot's signature, so ticket pages cannot be guessed.
