@@ -8,6 +8,10 @@
  *  • From the 🎟 key under the chat: there is no signature, so the form hands
  *    its answers to Telegram (sendData) and the bot replies in the chat.
  *  • In a normal browser: the page shows the tickets and a button to open the bot.
+ *
+ * Promo code: while the bot offers one (Settings → promo_code, promo_discount, promo_limit), a code
+ * box shows under the Standard ticket. The right code takes promo_discount off each Standard ticket.
+ * When all promo tickets are paid for, the bot stops sending it and the box disappears.
  */
 import { apiGet, apiPost } from './api.js'
 import { botLink } from './config.js'
@@ -33,6 +37,15 @@ const T = {
     badQty: 'Please choose 1 to {max} tickets',
     nameHintMany: 'This name goes on all {n} tickets',
     totalOf: '{n} tickets × {price}',
+    promoLabel: 'Promo code',
+    promoPh: 'Enter your code',
+    promoApply: 'Apply',
+    promoApplied: '{code} applied: {amount} off each ticket',
+    promoRemove: 'Remove',
+    promoBad: 'This promo code isn’t valid',
+    promoEmpty: 'Please type your promo code',
+    promoLeft: 'Only {n} promo tickets are left',
+    promoGone: 'The promotion has ended\nStandard tickets are back to {price}',
     grpName: 'Group of {size}',
     grpDesc: '{size} people, drinks included\nEveryone gets their own QR',
     save: 'Save {amount}',
@@ -122,6 +135,15 @@ const T = {
     badQty: 'សូមជ្រើសរើសសំបុត្រពី ១ ដល់ {max} សន្លឹក',
     nameHintMany: 'ឈ្មោះនេះនឹងបង្ហាញនៅលើសំបុត្រទាំង {n} សន្លឹក',
     totalOf: '{n} សន្លឹក × {price}',
+    promoLabel: 'លេខកូដប្រូម៉ូសិន',
+    promoPh: 'បញ្ចូលលេខកូដ',
+    promoApply: 'ប្រើ',
+    promoApplied: 'បានប្រើ {code}៖ បញ្ចុះ {amount} ក្នុងមួយសន្លឹក',
+    promoRemove: 'ដកចេញ',
+    promoBad: 'លេខកូដប្រូម៉ូសិននេះមិនត្រឹមត្រូវទេ',
+    promoEmpty: 'សូមវាយលេខកូដប្រូម៉ូសិន',
+    promoLeft: 'សំបុត្រប្រូម៉ូសិននៅសល់តែ {n} សន្លឹកប៉ុណ្ណោះ',
+    promoGone: 'ប្រូម៉ូសិនបានបញ្ចប់ហើយ\nសំបុត្រស្តង់ដារមានតម្លៃ {price} ដូចធម្មតាវិញ',
     grpName: 'ក្រុម {size} នាក់',
     grpDesc: '{size} នាក់ រួមទាំងភេសជ្ជៈ\nម្នាក់ៗទទួលបាន QR ផ្ទាល់ខ្លួន',
     save: 'សន្សំបាន {amount}',
@@ -209,6 +231,8 @@ const state = {
   info: null,
   type: '',
   qty: 1, // Standard tickets in this order
+  promo: '', // the promo code that was accepted ('' for none)
+  promoText: '', // what is typed in the promo code box
   name: '',
   phone: '',
   errors: {},
@@ -234,12 +258,24 @@ function prices() {
   const p = (state.info && state.info.prices) || { individual: 8, group: 38, symbol: '$', khrRate: 0 }
   return p
 }
-const priceOf = (type) => (type === 'GROUP' ? prices().group : prices().individual)
+/** The promo the bot offers ({ hash, off, price, left }), or null when there is none or every promo ticket is sold. */
+const promoOffer = () => (MODE !== 'browser' && state.info && state.info.promo) || null
+/** True when a promo code was accepted and the promo is still on. */
+const promoOn = () => !!(state.promo && promoOffer())
+const promoKey = (v) => String(v || '').replace(/\s+/g, '').toUpperCase()
+
+/** A Standard ticket costs less with the promo code. */
+const priceOf = (type) => (type === 'GROUP' ? prices().group : promoOn() ? promoOffer().price : prices().individual)
 
 /** Most Standard tickets in one order (Settings → max_standard in the bot's sheet, 10 by default). */
-function maxQty() {
+function baseMaxQty() {
   const m = Math.floor(Number(state.info && state.info.maxStandard))
   return m >= 1 ? Math.min(m, 99) : 10
+}
+/** The same, but never more than the promo tickets that are left when the promo code is used. */
+function maxQty() {
+  const base = baseMaxQty()
+  return promoOn() ? Math.max(Math.min(base, Math.floor(Number(promoOffer().left)) || base), 1) : base
 }
 /** How many tickets this order is for: the chosen number for Standard, one ticket for a Group. */
 const qtyOf = (type) => (type === 'GROUP' ? 1 : state.qty)
@@ -283,6 +319,8 @@ async function load() {
   const onSale = (type) => !!type && info.salesOpen && (type === 'GROUP' ? info.canGroup : info.canIndividual)
   if (MODE === 'browser') state.type = ''
   else if (!onSale(state.type)) state.type = onSale('INDIVIDUAL') ? 'INDIVIDUAL' : onSale('GROUP') ? 'GROUP' : ''
+  // The promotion ended while the form was open: back to the normal price.
+  if (state.promo && !promoOffer()) state.promo = ''
   state.qty = Math.min(Math.max(state.qty, 1), maxQty())
   render()
   // Fetch the payment QR while the customer fills in the form, so it shows at once after ordering.
@@ -343,6 +381,7 @@ function choiceHtml(type) {
   const can = group ? info.canGroup && info.salesOpen : info.canIndividual && info.salesOpen
   const amount = priceOf(type)
   const r = riel(amount, p.khrRate)
+  const was = !group && promoOn() ? p.individual : 0
   const badges = []
   if (!can) badges.push(`<span class="badge badge--grey">${esc(T[state.lang].soldOut)}</span>`)
   else if (group) {
@@ -366,7 +405,7 @@ function choiceHtml(type) {
         <span class="choice__desc">${lines(desc)}</span>
         ${badges.length ? `<span class="choice__badges">${badges.join('')}</span>` : ''}
       </span>
-      <span class="choice__price"><b>${esc(money(amount, p.symbol))}</b>${r ? `<span>${esc(r)}</span>` : ''}</span>
+      <span class="choice__price">${was ? `<s class="choice__was">${esc(money(was, p.symbol))}</s>` : ''}<b>${esc(money(amount, p.symbol))}</b>${r ? `<span>${esc(r)}</span>` : ''}</span>
     </${tag}>`
 }
 
@@ -375,12 +414,13 @@ function qtyHtml() {
   const max = maxQty()
   const err = state.errors.qty
   return `
-    <div class="qty" role="group" aria-labelledby="qty-label">
+    <div class="qty">
+      ${promoHtml()}
       <div class="qty__text">
         <span class="qty__label" id="qty-label">${esc(T[state.lang].qtyLabel)}</span>
         <span class="qty__hint" id="qty-hint">${esc(T[state.lang].qtyHint)}</span>
       </div>
-      <div class="stepper" id="stepper" aria-invalid="${!!err}">
+      <div class="stepper" id="stepper" role="group" aria-labelledby="qty-label" aria-invalid="${!!err}">
         <button type="button" class="stepper__btn" data-step="-1" aria-label="${esc(T[state.lang].qtyLess)}" ${state.qty <= 1 ? 'disabled' : ''}>${icon('minus')}</button>
         <input class="stepper__input" id="qty" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" enterkeyhint="done"
           role="spinbutton" aria-valuemin="1" aria-valuemax="${max}" aria-valuenow="${state.qty}" aria-labelledby="qty-label" aria-describedby="qty-hint"
@@ -388,6 +428,32 @@ function qtyHtml() {
         <button type="button" class="stepper__btn" data-step="1" aria-label="${esc(T[state.lang].qtyMore)}" ${state.qty >= max ? 'disabled' : ''}>${icon('plus')}</button>
       </div>
       ${err ? `<span class="field__error qty__error" role="alert">${esc(err)}</span>` : ''}
+    </div>`
+}
+
+const TAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>'
+
+/** Under the Standard ticket price: the promo code box, or the code that was accepted. Nothing when there is no promo. */
+function promoHtml() {
+  const offer = promoOffer()
+  if (!offer) return ''
+  if (promoOn()) {
+    return `
+      <div class="promo" id="promo">
+        <p class="promo__on" role="status">${icon('check')}<span>${esc(t('promoApplied', { code: state.promo, amount: money(offer.off, prices().symbol) }))}</span>
+          <button type="button" class="promo__remove" id="promo-remove">${esc(T[state.lang].promoRemove)}</button></p>
+      </div>`
+  }
+  const err = state.errors.promo
+  return `
+    <div class="promo" id="promo">
+      <label class="promo__label" for="promo-code">${TAG_ICON}${esc(T[state.lang].promoLabel)}</label>
+      <div class="promo__row">
+        <input class="input promo__input" id="promo-code" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false"
+          maxlength="30" enterkeyhint="done" placeholder="${esc(T[state.lang].promoPh)}" value="${esc(state.promoText)}" aria-invalid="${!!err}" />
+        <button type="button" class="btn btn--light btn--small promo__apply" id="promo-apply">${esc(T[state.lang].promoApply)}</button>
+      </div>
+      ${err ? `<span class="field__error" role="alert">${esc(err)}</span>` : ''}
     </div>`
 }
 
@@ -461,9 +527,10 @@ function totalInner() {
   const amount = orderAmount(type)
   const r = riel(amount, prices().khrRate)
   const many = type !== 'GROUP' && state.qty > 1
+  const was = type !== 'GROUP' && promoOn() ? Math.round(prices().individual * state.qty * 100) / 100 : 0
   return `
     <span>${esc(T[state.lang].total)}${many ? `<small class="total__of">${t('totalOf', { n: n(state.qty), price: money(priceOf(type), prices().symbol) })}</small>` : ''}</span>
-    <div style="text-align:right"><b>${esc(money(amount, prices().symbol))}</b>${r ? `<br><span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</div>`
+    <div style="text-align:right">${was ? `<s class="total__was">${esc(money(was, prices().symbol))}</s>` : ''}<b>${esc(money(amount, prices().symbol))}</b>${r ? `<br><span>${esc(T[state.lang].or)} ${esc(r)}</span>` : ''}</div>`
 }
 
 function payHtml() {
@@ -581,7 +648,7 @@ function renderDone() {
         </div>
         <div class="pay__fact">
           <dt>${esc(T[state.lang].tickets)}</dt>
-          <dd><span class="pay__ticket">${esc(ticketLabel)}</span></dd>
+          <dd><span class="pay__ticket">${esc(ticketLabel)}</span>${d.promo ? ` <span class="badge badge--green">${TAG_ICON}${esc(d.promo)}</span>` : ''}</dd>
         </div>
       </dl>
       ${showQr ? `
@@ -698,6 +765,7 @@ function bind() {
     }),
   )
   bindQty()
+  bindPromo()
   const name = $('#name')
   const phone = $('#phone')
   if (name) {
@@ -750,7 +818,7 @@ function bindQty() {
     if (!digits) return // still typing: keep the last number until they finish
     const wanted = Number(digits)
     if (wanted > maxQty()) {
-      toast(t('qtyMax', { max: n(maxQty()) }))
+      toast(maxQty() < baseMaxQty() ? t('promoLeft', { n: n(maxQty()) }) : t('qtyMax', { max: n(maxQty()) }))
       return setQty(maxQty())
     }
     if (wanted >= 1) setQty(wanted, { keepInput: true })
@@ -767,6 +835,85 @@ function bindQty() {
       input.blur()
     }
   })
+}
+
+/** The promo code box: the right code is taken as soon as it is typed, or with Apply / Enter. */
+function bindPromo() {
+  const input = $('#promo-code')
+  if (input) {
+    input.addEventListener('input', async () => {
+      state.promoText = input.value
+      if (state.errors.promo) {
+        state.errors.promo = ''
+        input.setAttribute('aria-invalid', 'false')
+        const errEl = $('#promo .field__error')
+        if (errEl) errEl.remove()
+      }
+      const typed = promoKey(input.value)
+      if (typed && (await promoMatches(typed)) === true && promoKey(state.promoText) === typed) applyPromo(typed)
+    })
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return
+      e.preventDefault()
+      tryPromo()
+    })
+  }
+  const apply = $('#promo-apply')
+  if (apply) apply.addEventListener('click', () => tryPromo())
+  const remove = $('#promo-remove')
+  if (remove) {
+    remove.addEventListener('click', () => {
+      state.promo = ''
+      state.promoText = ''
+      tg.haptic('select')
+      render()
+    })
+  }
+}
+
+/** True when the code is the bot's promo code, false when not, null when this phone can't check (the bot checks it then). */
+async function promoMatches(code) {
+  const offer = promoOffer()
+  if (!offer || !code) return false
+  try {
+    const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code)))
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('') === offer.hash
+  } catch (err) {
+    return null
+  }
+}
+
+/** Apply / Enter: takes the typed code, or says why not. Returns true when the code was taken. */
+async function tryPromo() {
+  const typed = promoKey(state.promoText)
+  if (!typed) return promoError(T[state.lang].promoEmpty)
+  const ok = await promoMatches(typed)
+  if (ok === false) return promoError(T[state.lang].promoBad)
+  applyPromo(typed)
+  return true
+}
+
+function applyPromo(code) {
+  if (!promoOffer()) return
+  state.promo = code
+  state.promoText = code
+  state.errors.promo = ''
+  const left = Math.floor(Number(promoOffer().left)) || 0
+  if (left >= 1 && state.qty > left) {
+    state.qty = left
+    toast(t('promoLeft', { n: n(left) }))
+  }
+  tg.haptic('success')
+  render()
+}
+
+function promoError(message) {
+  state.errors.promo = message
+  tg.haptic('error')
+  render()
+  const input = $('#promo-code')
+  if (input) input.focus()
+  return false
 }
 
 /** Sets the number of Standard tickets and updates the box, the buttons, the total and the name hint in place. */
@@ -828,6 +975,11 @@ function updateButton() {
 
 async function onSubmit() {
   if (state.busy || state.done) return
+  // A promo code was typed but not taken yet: check it first, so nobody pays the full price by mistake.
+  if (state.type === 'INDIVIDUAL' && promoOffer() && !state.promo && promoKey(state.promoText)) {
+    if (await tryPromo()) toast(t('promoApplied', { code: state.promo, amount: money(promoOffer().off, prices().symbol) }))
+    return
+  }
   const errors = {}
   if (!state.type) errors.type = T[state.lang].pickTicket
   const qty = qtyOf(state.type)
@@ -848,10 +1000,12 @@ async function onSubmit() {
     return
   }
   // The same answers keep the same nonce, so retrying after a lost answer never makes two orders.
-  const key = [state.type, qty, name, phone, state.lang].join('|')
+  const promo = state.type === 'INDIVIDUAL' && promoOn() ? state.promo : ''
+  const key = [state.type, qty, name, phone, state.lang, promo].join('|')
   if (!state.attempt || state.attempt.key !== key) state.attempt = { key, nonce: nonce() }
   const order = { action: 'order', type: state.type, name, phone, lang: state.lang, nonce: state.attempt.nonce }
   if (state.type === 'INDIVIDUAL') order.qty = qty
+  if (promo) order.promo = promo
 
   if (MODE === 'keyboard') {
     tg.haptic('success')
@@ -884,6 +1038,20 @@ async function onSubmit() {
   if (res && (res.error === 'bad_name' || res.error === 'bad_phone' || res.error === 'bad_qty')) {
     state.errors = { [res.error === 'bad_name' ? 'name' : res.error === 'bad_qty' ? 'qty' : 'phone']: res.message.replace(/\s*🙏$/, '') }
     return render()
+  }
+  if (res && res.error === 'bad_promo') {
+    state.promo = ''
+    return promoError(T[state.lang].promoBad)
+  }
+  if (res && res.error === 'promo_left' && promoOffer()) {
+    promoOffer().left = Math.max(Number(res.left) || 0, 1)
+    state.qty = Math.min(state.qty, maxQty())
+    return promoError(t('promoLeft', { n: n(res.left) }))
+  }
+  if (res && res.error === 'promo_gone') {
+    state.promo = ''
+    await tg.showAlert(t('promoGone', { price: money(prices().individual, prices().symbol) }))
+    return load()
   }
   if (res && (res.error === 'group_gone' || res.error === 'sold_out' || res.error === 'sales_closed' || res.error === 'not_enough')) {
     await tg.showAlert(res.message)
