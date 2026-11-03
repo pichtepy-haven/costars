@@ -11,7 +11,9 @@
  *
  * Promo code: while the bot offers one (Settings → promo_code, promo_discount, promo_limit), a code
  * box shows under the Standard ticket. The right code takes promo_discount off each Standard ticket.
- * When all promo tickets are paid for, the bot stops sending it and the box disappears.
+ * The bot sells exactly promo_limit promo tickets: an unpaid promo order keeps its tickets for
+ * promo_hold_minutes (the page shows until when). When none are left, the bot stops sending the
+ * promo and the box disappears.
  */
 import { apiGet, apiPost } from './api.js'
 import { botLink } from './config.js'
@@ -46,6 +48,7 @@ const T = {
     promoEmpty: 'Please type your promo code',
     promoLeft: 'Only {n} promo tickets are left',
     promoGone: 'The promotion has ended\nStandard tickets are back to {price}',
+    promoHold: 'Your promo price is kept until {time}. Please pay and send your receipt before then.',
     grpName: 'Group of {size}',
     grpDesc: '{size} people, drinks included\nEveryone gets their own QR',
     save: 'Save {amount}',
@@ -144,6 +147,7 @@ const T = {
     promoEmpty: 'សូមវាយលេខកូដប្រូម៉ូសិន',
     promoLeft: 'សំបុត្រប្រូម៉ូសិននៅសល់តែ {n} សន្លឹកប៉ុណ្ណោះ',
     promoGone: 'ប្រូម៉ូសិនបានបញ្ចប់ហើយ\nសំបុត្រស្តង់ដារមានតម្លៃ {price} ដូចធម្មតាវិញ',
+    promoHold: 'តម្លៃប្រូម៉ូសិនរបស់អ្នកត្រូវបានរក្សាទុករហូតដល់ម៉ោង {time}។ សូមបង់ប្រាក់ និងផ្ញើបង្កាន់ដៃមុនពេលនោះ។',
     grpName: 'ក្រុម {size} នាក់',
     grpDesc: '{size} នាក់ រួមទាំងភេសជ្ជៈ\nម្នាក់ៗទទួលបាន QR ផ្ទាល់ខ្លួន',
     save: 'សន្សំបាន {amount}',
@@ -453,7 +457,8 @@ function promoHtml() {
           maxlength="30" enterkeyhint="done" placeholder="${esc(T[state.lang].promoPh)}" value="${esc(state.promoText)}" aria-invalid="${!!err}" />
         <button type="button" class="btn btn--light btn--small promo__apply" id="promo-apply">${esc(T[state.lang].promoApply)}</button>
       </div>
-      ${err ? `<span class="field__error" role="alert">${esc(err)}</span>` : ''}
+      ${err ? `<span class="field__error" role="alert">${esc(err)}</span>`
+            : offer.left <= 20 ? `<span class="field__hint">${esc(t('promoLeft', { n: n(offer.left) }))}</span>` : ''}
     </div>`
 }
 
@@ -651,6 +656,7 @@ function renderDone() {
           <dd><span class="pay__ticket">${esc(ticketLabel)}</span>${d.promo ? ` <span class="badge badge--green">${TAG_ICON}${esc(d.promo)}</span>` : ''}</dd>
         </div>
       </dl>
+      ${d.promoUntil ? `<p class="notice">${TAG_ICON}<span>${esc(t('promoHold', { time: state.lang === 'km' ? khDigits(d.promoUntil.km || '') : d.promoUntil.en || '' }))}</span></p>` : ''}
       ${showQr ? `
       <figure class="khqr">
         <div class="khqr__frame is-loading" id="khqr-frame">
