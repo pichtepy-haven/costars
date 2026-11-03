@@ -278,10 +278,15 @@ The donation form's wording is in the Web texts tab (`donate.…` rows); the bot
 Promo code (Standard tickets only): `/buy` shows a **Promo code** box right under the Standard
 ticket. The right code (Settings → `promo_code`, `COSTARS`; capitals or spaces don't matter) takes
 `promo_discount` ($2) off each Standard ticket, so the card shows ~~$8~~ $6 and the total follows.
-Only `promo_limit` (200) promo tickets are sold: when that many are **paid**, the box disappears and
-Standard tickets are $8 again. The bot checks the code and the count again when the order is sent,
-saves it in the Orders tab's `promo` column, shows it on the admin card, in /stats and in the Summary
-tab (Promo tickets paid), and tells the admin group when the promo is finished. The page only gets a
+Exactly `promo_limit` (200) promo tickets are sold, never more: paid tickets, receipts being checked
+and unpaid promo orders from the last `promo_hold_minutes` (60) all count. When none are left the box
+disappears and Standard tickets are $8 again; an unpaid order that runs out of time, a rejected one or
+a replaced one gives its promo tickets back (and the box comes back). After ordering, the page and the
+chat say until when the promo price is kept. If a receipt comes after that and the promo ran out
+meanwhile, the order changes to the normal price: the customer is asked to pay the difference with the
+same remark, and the admin card says so. The bot checks the code and the count again when the order is
+sent, saves it in the Orders tab's `promo` column, shows it on the admin card, in /stats (paid, being
+paid, left) and in the Summary tab (Promo tickets paid), and tells the admin group when it is finished. The page only gets a
 fingerprint (SHA-256) of the code, never the code itself. Empty `promo_code` turns the promo off.
 The box's wording is in the Web texts tab (`form.promo…` rows).
 
