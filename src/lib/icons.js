@@ -1,24 +1,44 @@
 import {
-  DoorOpen, Mic, Crown, Piano, MicVocal, Coffee, HeartHandshake, HandHeart,
-  Backpack, School, Music, Landmark, UsersRound, Heart, Sparkles,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BellOff, Calendar, Camera, ChevronDown, ChevronLeft,
+  ChevronRight, CircleHelp, Clock, Coffee, Crown, DoorOpen, Drum, Guitar, Heart, HeartHandshake, Info,
+  MapPin, Mic, MicVocal, MoveHorizontal, Music, Phone, Piano, Radio, Send, Star, Ticket, X,
 } from 'lucide-react'
 
-/** Icon names that can be used in src/data.js */
-export const icons = {
-  door: DoorOpen,
-  mic: Mic,
-  crown: Crown,
-  piano: Piano,
-  'mic-vocal': MicVocal,
+/** Icon names that can be used in the content (data.js / Google Sheet). */
+const ICONS = {
+  'arrow-down': ArrowDown,
+  'arrow-left': ArrowLeft,
+  'arrow-right': ArrowRight,
+  'arrow-up-right': ArrowUpRight,
+  'bell-off': BellOff,
+  'phone-off': BellOff,
+  aisle: MoveHorizontal,
+  calendar: Calendar,
+  camera: Camera,
+  'chevron-down': ChevronDown,
+  'chevron-left': ChevronLeft,
+  'chevron-right': ChevronRight,
+  help: CircleHelp,
+  clock: Clock,
   coffee: Coffee,
+  crown: Crown,
+  door: DoorOpen,
+  drum: Drum,
+  guitar: Guitar,
+  heart: Heart,
   'heart-handshake': HeartHandshake,
-  'hand-heart': HandHeart,
-  backpack: Backpack,
-  school: School,
+  info: Info,
+  'map-pin': MapPin,
+  mic: Mic,
+  'mic-vocal': MicVocal,
   music: Music,
-  culture: Landmark,
-  community: UsersRound,
-  charity: Heart,
+  phone: Phone,
+  piano: Piano,
+  radio: Radio,
+  send: Send,
+  star: Star,
+  ticket: Ticket,
+  x: X,
 }
 
-export const getIcon = (name) => icons[name] || Sparkles
+export const getIcon = (name) => ICONS[name] || Music

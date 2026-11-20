@@ -1,47 +1,51 @@
-import React from 'react'
-import BrandMark from './BrandMark.jsx'
-import StageCover from './StageCover.jsx'
-import SectionDivider from './SectionDivider.jsx'
-import { event, values } from '../data.js'
-import { getIcon } from '../lib/icons.js'
+import React from "react";
+import { event, socials } from "../data.js";
+import { useT } from "../i18n.jsx";
 
-/** Quote band + values row [UI2], closing line [UI1]. compact = sub-pages. */
+const LINKS = [
+  ["facebook", "Facebook"],
+  ["instagram", "Instagram"],
+  ["tiktok", "TikTok"],
+  ["email", "Email"],
+];
+
+/** Musicians on a glowing stage, then the closing line and social links. */
 export default function SiteFooter({ compact = false }) {
+  const { t, loc } = useT();
+  const links = LINKS.filter(([key]) => socials[key]);
   return (
-    <footer className={`site-footer ${compact ? 'site-footer--compact' : ''}`}>
+    <footer className={`site-footer ${compact ? "site-footer--compact" : ""}`}>
       {!compact && (
-        <>
-          <div className="quote-band">
-            <StageCover className="quote-band__media" size="band" tone="crimson" silhouette />
-            <div className="quote-band__shade" aria-hidden="true" />
-            <div className="quote-band__copy">
-              <p className="quote-band__quote">“{event.quote}”</p>
-              <BrandMark tone="light" />
-            </div>
-          </div>
-          <ul className="values" aria-label="What CoStars stands for">
-            {values.map((v) => {
-              const Icon = getIcon(v.icon)
-              return (
-                <li key={v.label}>
-                  <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
-                  <span>{v.label}</span>
-                </li>
-              )
-            })}
-          </ul>
-          <div className="motif-band" aria-hidden="true" />
-        </>
+        <div className="footer-stage" aria-hidden="true">
+          <div className="floor-glow" />
+          <img src="/images/brand/musicians.svg" alt="" />
+        </div>
       )}
-      <div className="site-footer__closing">
-        <p className="site-footer__kicker">{event.name}</p>
-        <SectionDivider />
-        <p className="site-footer__small">
-          {event.tagline}
-          <br />
-          {event.organizer}.
-        </p>
+      <div className="footer-bottom">
+        <div className="footer-closing wrap">
+          <div className="footer-closing__text">
+            <p className="display footer-name">{loc(event, "name")}</p>
+            {!compact && (
+              <p className="footer-small">{loc(event, "footerText")}</p>
+            )}
+          </div>
+          {links.length > 0 && (
+            <nav className="footer-links" aria-label="CoStars">
+              {links.map(([key, label]) => (
+                <a
+                  key={key}
+                  href={socials[key]}
+                  {...(socials[key].startsWith("http")
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  {key === "email" ? t("email") : label}
+                </a>
+              ))}
+            </nav>
+          )}
+        </div>
       </div>
     </footer>
-  )
+  );
 }

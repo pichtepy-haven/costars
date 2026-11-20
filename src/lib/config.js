@@ -15,8 +15,11 @@ export const DEFAULT_EXPANDED_ID = 'welcome'
  * Google Sheet the guide reads its text from (see src/lib/sheetContent.js).
  * The ID is the long code in the sheet's address:
  *   https://docs.google.com/spreadsheets/d/<THIS PART>/edit
- * Sheet: “CoStars Event Guide - Live Content” (Google Drive of pichtepynov@gmail.com).
+ * Sheet: “CoStars Event Guide - Live Content” (Google Drive of chensovann@gmail.com).
+ * It must be shared as “Anyone with the link – Viewer” for the guide to read it.
+ * (The earlier copy, 1I2r3_1y2eZtx3FM-kw-_2IcoXnlMXibo6SOTXR8VYXU in the Drive of
+ * pichtepynov@gmail.com, is no longer read by the guide.)
  * Set VITE_CONTENT_SHEET_ID to an empty value to use only src/data.js.
  */
 export const CONTENT_SHEET_ID =
-  import.meta.env.VITE_CONTENT_SHEET_ID ?? '1I2r3_1y2eZtx3FM-kw-_2IcoXnlMXibo6SOTXR8VYXU'
+  import.meta.env.VITE_CONTENT_SHEET_ID ?? '1iXSGmXxZdXDcYaavDiHRS2OvC4eK8MMv2i5aM4cxuH8'

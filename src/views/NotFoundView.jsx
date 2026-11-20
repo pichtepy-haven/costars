@@ -1,16 +1,20 @@
 import React from 'react'
-import Button from '../components/Button.jsx'
+import { ArrowLeft } from 'lucide-react'
+import { useT } from '../i18n.jsx'
+import { hrefFor } from '../lib/router.js'
 
 export default function NotFoundView() {
+  const { t } = useT()
   return (
-    <div className="page-section not-found">
-      <h1 id="view-title" tabIndex={-1}>
-        We couldn’t find that page
+    <section className="not-found wrap">
+      <h1 className="display" id="view-title" tabIndex={-1}>
+        {t('not_found_title')}
       </h1>
-      <p>The link may be out of date. Everything for tonight is in the main guide.</p>
-      <Button variant="primary" href="#/">
-        Open the event guide
-      </Button>
-    </div>
+      <p>{t('not_found_text')}</p>
+      <a className="btn btn--cream" href={hrefFor.home()}>
+        <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
+        {t('back_guide')}
+      </a>
+    </section>
   )
 }

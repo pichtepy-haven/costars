@@ -5,18 +5,58 @@ export const toMinutes = (hhmm) => {
   return h * 60 + m
 }
 
-export const formatTime = (hhmm) => {
+/** Khmer word for the part of the day (morning, afternoon, evening, night). */
+const kmPeriod = (h) => (h < 12 ? 'ព្រឹក' : h < 16 ? 'រសៀល' : h < 19 ? 'ល្ងាច' : 'យប់')
+
+/** "17:10" → "5:10" */
+export const formatClock = (hhmm) => {
   const [h, m] = hhmm.split(':').map(Number)
-  const suffix = h >= 12 ? 'PM' : 'AM'
-  const h12 = ((h + 11) % 12) + 1
-  return `${h12}:${String(m).padStart(2, '0')} ${suffix}`
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')}`
 }
 
-export const formatRange = (item) => `${formatTime(item.start)} – ${formatTime(item.end)}`
+/** "17:10" → "PM" / "ល្ងាច" */
+export const formatPeriod = (hhmm, lang = 'en') => {
+  const h = Number(hhmm.split(':')[0])
+  if (lang === 'km') return kmPeriod(h)
+  return h >= 12 ? 'PM' : 'AM'
+}
+
+/** "17:10" → "5:10 PM" / "5:10 ល្ងាច" */
+export const formatTime = (hhmm, lang = 'en') => `${formatClock(hhmm)} ${formatPeriod(hhmm, lang)}`
+
+/** "5:10 – 5:55 PM" (the period once when both ends share it) */
+export const formatRange = (item, lang = 'en') => {
+  const a = formatPeriod(item.start, lang)
+  const b = formatPeriod(item.end, lang)
+  return a === b
+    ? `${formatClock(item.start)} – ${formatClock(item.end)} ${b}`
+    : `${formatTime(item.start, lang)} – ${formatTime(item.end, lang)}`
+}
 
 export const durationOf = (item) => toMinutes(item.end) - toMinutes(item.start)
 
-export const formatDuration = (minutes) => `${minutes} min`
+export const formatDuration = (minutes, lang = 'en') => `${minutes} ${lang === 'km' ? 'នាទី' : 'min'}`
+
+const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const DAYS_KM = ['ថ្ងៃអាទិត្យ', 'ថ្ងៃច័ន្ទ', 'ថ្ងៃអង្គារ', 'ថ្ងៃពុធ', 'ថ្ងៃព្រហស្បតិ៍', 'ថ្ងៃសុក្រ', 'ថ្ងៃសៅរ៍']
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTHS_EN_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTHS_KM = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
+
+/** "2026-12-05" → "Sat 5 Dec" / "ថ្ងៃសៅរ៍ ទី5 ធ្នូ" (long: "Saturday 5 December 2026") */
+export const formatDay = (isoDate, lang = 'en', long = false) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate || '')
+  if (!m) return ''
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])))
+  const dow = d.getUTCDay()
+  const day = d.getUTCDate()
+  const mon = d.getUTCMonth()
+  if (lang === 'km') return `${DAYS_KM[dow]} ទី${day} ${MONTHS_KM[mon]}${long ? ` ${m[1]}` : ''}`
+  return long ? `${day} ${MONTHS_EN_LONG[mon]} ${m[1]}` : `${DAYS_EN[dow]} ${day} ${MONTHS_EN[mon]}`
+}
+
+/** The moment an item starts on the event day, as a Date. */
+export const startDate = (event, hhmm) => new Date(`${event.date}T${hhmm}:00${event.utcOffset}`)
 
 /** Parse “+07:00” into minutes east of UTC. */
 const offsetMinutes = (offset = '+00:00') => {
@@ -55,8 +95,8 @@ export const eventClock = (date, utcOffset) => {
  */
 export const getLiveState = (agenda, event, now) => {
   const { dateStr, minutes } = eventClock(now, event.utcOffset)
-  if (dateStr < event.date) return { phase: 'before-day' }
-  if (dateStr > event.date) return { phase: 'after-day' }
+  if (dateStr < event.date) return { phase: 'before-day', minutes }
+  if (dateStr > event.date) return { phase: 'after-day', minutes }
   const current = agenda.find((item) => minutes >= toMinutes(item.start) && minutes < toMinutes(item.end))
   const next = agenda.find((item) => toMinutes(item.start) > minutes)
   const first = agenda[0]
@@ -64,7 +104,7 @@ export const getLiveState = (agenda, event, now) => {
   let phase = 'live'
   if (first && minutes < toMinutes(first.start)) phase = 'before-start'
   else if (last && minutes >= toMinutes(last.end)) phase = 'ended'
-  return { phase, currentId: current?.id ?? null, nextId: next?.id ?? null }
+  return { phase, minutes, currentId: current?.id ?? null, nextId: next?.id ?? null }
 }
 
 /** Live state that refreshes every 30 seconds and whenever the content changes. */
