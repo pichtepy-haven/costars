@@ -48,9 +48,12 @@ happens automatically from the phone's clock.
 
 | Screen | What it shows | Design reference |
 | --- | --- | --- |
-| **Home** `#/` | Welcome banner · quick links · **Performance Schedule** (accordion, one item open at a time) · **Agenda Highlights** · **Charity Impact** · Etiquette / Sponsors / Need help / About CoStars · quote footer | UI Kit (accordion, list rows) + UI 2 (home, highlights, charity band, footer) |
-| **Act page** `#/act/act-1`, `act-2`, `act-3` | Act artwork or photo, time and duration, description, **About the Performers** (line-up from the proposal), gallery, previous/next act | UI 2 detail screens |
-| **Charity page** `#/charity` | L’aang Primary School facts, where the ticket money goes, the school's needs, photos, Vision & Mission | UI 2 “Charity Impact” screen + proposal slides 1, 3, 5, 6 |
+| **Home** `#/` | Welcome + countdown to doors open (a live “Now on stage” card during the show) · **The night, moment by moment** (running order) · **Three acts, one stage** · **Charity impact** · Sponsors (once filled) · **More for your evening** (etiquette, need help, about CoStars) | “Night Stage” mockups (Claude Design canvas) |
+| **Act page** `#/act/act-1`, `act-2`, `act-3` | Hero, description, line-up (Act I: the two dances, their moments and the hand gestures), **Meet the artist(s)**, previous/next | Night Stage mockups |
+| **Charity page** `#/charity` | L’aang Primary School: 100%, facts, where your ticket goes, photos, the school's needs, donate button | Night Stage mockups |
+| **Live** `#/live` | On the event day: what is on stage, the set playing, time left, up next (menu item “Live now”) | Night Stage mockups |
+
+Every page has an **English / ខ្មែរ** switch (top right). The choice is remembered on the phone.
 
 Not included in the guide on purpose: venue directions, ticket sales and other pre-event
 information (see the brief). The guide is meant for use on the night. Ticket sales live on
@@ -74,13 +77,15 @@ costars-ui-starter/
 │  └─ images/              ← put photos here (see public/images/README.md)
 ├─ staff.html + staff/     staff check-in page /staff (section 6c)
 └─ src/
-   ├─ data.js              ← ALL EVENT CONTENT (edit this)
+   ├─ data.js              ← ALL BUILT-IN CONTENT, English + Khmer (fallback for the Sheet)
+   ├─ i18n.jsx             English / Khmer switch + every label and heading (UI_TEXT)
    ├─ App.jsx              page switching, menu, scroll handling
-   ├─ styles.css           all styling (tokens at the top)
-   ├─ lib/                 helpers: router (#/ links), time & “Now”, icons, settings
-   ├─ views/               HomeView, ActView, CharityView, NotFoundView
-   └─ components/          Hero, Schedule, AgendaItem, AgendaHighlights, StageCover,
-                           CharityImpact, MoreInfo, SiteHeader, SiteFooter, Lightbox, …
+   ├─ styles.css           all styling (tokens at the top; desktop rules from 960px)
+   ├─ lib/                 helpers: router (#/ links), time & “Now”, live set, Sheet loader, icons
+   ├─ views/               HomeView, ActView, CharityView, LiveView, NotFoundView
+   └─ components/          SiteHeader, SiteFooter, ui.jsx (shared pieces),
+                           home/ (Hero, Schedule, ActsShowcase, CharityHighlight, Sponsors, MoreForEvening),
+                           act/ (ActHero, Dances, Gestures, Lineup, Artists, ActNav)
 ```
 
 ---
@@ -90,17 +95,27 @@ costars-ui-starter/
 ### Easiest: the Google Sheet (live, no redeploy)
 
 Text on the live site comes from the Google Sheet **“CoStars Event Guide - Live Content”**
-(https://docs.google.com/spreadsheets/d/1I2r3_1y2eZtx3FM-kw-_2IcoXnlMXibo6SOTXR8VYXU/edit).
+(https://docs.google.com/spreadsheets/d/1iXSGmXxZdXDcYaavDiHRS2OvC4eK8MMv2i5aM4cxuH8/edit),
+in the Google Drive of chensovann@gmail.com. It must stay shared as
+**Anyone with the link – Viewer**, otherwise the site can't read it and falls back to the built-in text.
 Edit a cell and the guide shows it within about a minute (visitors may need to refresh).
 The sheet's first tab, **How to edit**, explains every column.
 
 | Tab | What it controls |
 | --- | --- |
-| Event | Event name, date, welcome title and message, footer lines, help phone / Telegram |
-| Schedule | The running order: titles, times, descriptions, notes, host name, act intros, photos |
-| Performers | Line-up per act: names, roles, pieces, minutes, biographies, photos |
-| Etiquette | The Event Etiquette list |
+| Event | Event name, date, welcome title and message, venue and hall, footer line and links, help text / help desk / phone |
+| Schedule | The running order: titles, times, descriptions, notes, host name, act intros, home-page card line, line-up titles |
+| Performers | Line-up per act: names, roles, pieces, minutes, setlists (one song per line), “with” chip, biographies, photos |
+| Etiquette | The Event Etiquette list: title, text, icon (`phone-off`, `aisle`, `door`, `camera`, `heart`, `info`) |
 | Sponsors | Sponsor names, logos and links (section appears once a row is filled) |
+| Text | Every label and heading of the design (`key` · `en` · `km`); keep the key column as is |
+| Dances · Moments · Gestures | Act I page: the two dances, their three moments, the eight hand gestures |
+| Artists | “Meet the artist” cards; `featured` = yes for the large card; quotes and years hidden while empty |
+| Charity · Facts · Steps · Needs | Charity texts, school facts (home = yes also shows them on the home page), where the money goes, the school's needs |
+
+**Khmer:** any text column can have a twin ending in `_km` (for example `title_km`, or
+`value_km` in the Event and Charity tabs). Leave it empty to show the English text.
+Optional tabs and columns can be missing: the site then uses the built-in text in `src/data.js`.
 
 How it stays safe:
 - Only people you invite as **Editor** can change it. The link is “Anyone with the link can
@@ -112,7 +127,7 @@ How it stays safe:
 - Undo mistakes with File → Version history in Google Sheets.
 
 The code for this lives in `src/lib/sheetContent.js`; the sheet ID is in `src/lib/config.js`.
-Charity facts, colours, fonts and icons are not in the sheet (they stay in the code).
+Colours, fonts and layout stay in the code.
 
 ### In the code: `src/data.js`
 
@@ -126,16 +141,17 @@ Open it in any text editor, or edit it on github.com (pencil icon).
 - **Reorder the schedule:** move a whole `{ … },` block up or down inside `agenda`.
 - **Add a performer biography:** fill in `bio: ''` for that performer.
 - **Add a performer's piece:** fill in `piece: ''` (shown with a ♪ icon).
+- **Add an Act III setlist:** fill in `setlist: ['Song 1', 'Song 2']`.
+- **Add an artist quote or years:** fill in `quote` / `years` in `artists`.
 - **Missing information:** leave it as `''` or `[]`. It is hidden on the live site.
 - **Rename the host:** `host: { name: '', role: 'Event Host' }` in the welcome item.
 - **Add sponsors:** add entries to `sponsors.list`, e.g.
   `{ name: 'Company', logo: '/images/sponsors/company.svg', url: 'https://…' }`.
   The “Our Sponsors” section appears automatically once there is at least one.
-- **Add a help contact:** fill in `help.phone` and/or `help.telegram`.
+- **Add a help contact:** fill in `help.phone`, or the help desk (`help.desk`, `help.deskText`).
 
-Each item in `src/data.js` has a source tag: `[P1]`–`[P6]` for the proposal slides,
-`[UI1]`/`[UI2]` for the designs, plus `TODO`/`CHECK` markers. Search for **TODO** and **CHECK**
-to find everything still open.
+Khmer text sits next to the English in a field ending in `_km`. Labels and headings
+(buttons, section titles) are in `src/i18n.jsx` → `UI_TEXT`.
 
 > ⚠️ The `id` values (`'act-1'`, `'charity'`, …) appear in links. Don't change them after the
 > QR code is printed.

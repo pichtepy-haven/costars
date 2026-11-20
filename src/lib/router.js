@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
  *   #/                 home (the guide)
  *   #/act/<agenda id>  act detail
  *   #/charity          charity & beneficiary page
+ *   #/live             tonight, live: what is on stage now
  * Hash URLs work on any static host (Vercel included) with no rewrite rules,
  * and survive refreshes and direct links.
  */
@@ -12,6 +13,7 @@ export const parseHash = (hash) => {
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean)
   if (parts[0] === 'act' && parts[1]) return { name: 'act', id: decodeURIComponent(parts[1]), key: `act/${parts[1]}` }
   if (parts[0] === 'charity') return { name: 'charity', key: 'charity' }
+  if (parts[0] === 'live') return { name: 'live', key: 'live' }
   return { name: 'home', key: 'home' }
 }
 
@@ -19,6 +21,7 @@ export const hrefFor = {
   home: () => '#/',
   act: (id) => `#/act/${encodeURIComponent(id)}`,
   charity: () => '#/charity',
+  live: () => '#/live',
 }
 
 const scrollMemory = new Map()

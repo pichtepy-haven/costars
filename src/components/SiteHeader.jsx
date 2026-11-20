@@ -1,128 +1,172 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, Menu as MenuIcon, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import BrandMark from './BrandMark.jsx'
-import { event } from '../data.js'
+import { MenuGlyph } from './ui.jsx'
+import { useLang, useT } from '../i18n.jsx'
 
-/**
- * Sticky header.
- *  variant 'home'    → logo · “Event Guide” · menu         [UI1][UI2]
- *  variant 'act'     → ‹ Agenda · centred logo · menu       [UI2 detail screens]
- *  variant 'charity' → ‹ logo “Charity Impact” · menu       [UI2 charity screen]
- */
-export default function SiteHeader({ variant = 'home', backLabel, onBack, title, menuItems }) {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 4)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const back = (
-    <a
-      href="#/"
-      className="site-header__back"
-      onClick={(e) => {
-        e.preventDefault()
-        onBack?.()
-      }}
-    >
-      <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
-      <span className={variant === 'charity' ? 'visually-hidden' : ''}>{backLabel}</span>
-    </a>
-  )
-
+/** Phone: one button that switches to the other language. */
+function LangToggle() {
+  const { lang, setLang } = useLang()
+  const { t } = useT()
+  const next = lang === 'km' ? 'en' : 'km'
   return (
-    <header className={`site-header site-header--${variant} ${scrolled ? 'is-scrolled' : ''}`}>
-      <div className="site-header__inner">
-        {variant === 'home' && (
-          <>
-            <a href="#/" className="site-header__brand" aria-label={`${event.brand} ${event.guideLabel}: home`}>
-              <BrandMark />
-            </a>
-            <span className="site-header__title">{event.guideLabel}</span>
-          </>
-        )}
-        {variant === 'act' && (
-          <>
-            {back}
-            <a href="#/" className="site-header__brand site-header__brand--center" aria-label={`${event.brand} ${event.guideLabel}: home`}>
-              <BrandMark />
-            </a>
-          </>
-        )}
-        {variant === 'charity' && (
-          <>
-            {back}
-            <a href="#/" className="site-header__brand" aria-label={`${event.brand} ${event.guideLabel}: home`}>
-              <BrandMark />
-            </a>
-            <span className="site-header__title">{title}</span>
-          </>
-        )}
-        <SiteMenu items={menuItems} />
-      </div>
-    </header>
+    <button
+      type="button"
+      className="lang-btn"
+      onClick={() => setLang(next)}
+      aria-label={`${t('switch_language')}: ${next === 'km' ? 'ខ្មែរ' : 'English'}`}
+    >
+      {next === 'km' ? <span lang="km">ខ្មែរ</span> : 'EN'}
+    </button>
   )
 }
 
-function SiteMenu({ items }) {
-  const [open, setOpen] = useState(false)
-  const buttonRef = useRef(null)
-  const panelRef = useRef(null)
+/** Desktop: EN | ខ្មែរ segmented switch. */
+function LangSegments() {
+  const { lang, setLang } = useLang()
+  const { t } = useT()
+  return (
+    <div className="lang-segs" role="group" aria-label={t('switch_language')}>
+      <button type="button" className={`lang-seg ${lang === 'en' ? 'on' : ''}`} aria-pressed={lang === 'en'} onClick={() => setLang('en')}>
+        EN
+      </button>
+      <button type="button" lang="km" className={`lang-seg ${lang === 'km' ? 'on' : ''}`} aria-pressed={lang === 'km'} onClick={() => setLang('km')}>
+        ខ្មែរ
+      </button>
+    </div>
+  )
+}
 
+/**
+ * Floating glass header with the phone menu.
+ *  variant  'home' (logo) | 'sub' (back link + page label)
+ *  items    [{ key, label, sub, dot, href, pulse, current }]
+ */
+export default function SiteHeader({ variant = 'home', backLabel, onBack, label, items = [], navItems = [] }) {
+  const { t } = useT()
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef(null)
+  const buttonRef = useRef(null)
+
+  // Close on Escape, keep focus in the menu, lock the page scroll while open.
   useEffect(() => {
     if (!open) return undefined
-    panelRef.current?.querySelector('a, button')?.focus()
+    const first = menuRef.current?.querySelector('a, button')
+    first?.focus()
     const onKey = (e) => {
       if (e.key === 'Escape') {
         setOpen(false)
         buttonRef.current?.focus()
       }
-    }
-    const onPointer = (e) => {
-      if (!panelRef.current?.contains(e.target) && !buttonRef.current?.contains(e.target)) setOpen(false)
+      if (e.key === 'Tab' && menuRef.current) {
+        const nodes = [buttonRef.current, ...menuRef.current.querySelectorAll('a, button')].filter(Boolean)
+        const i = nodes.indexOf(document.activeElement)
+        if (e.shiftKey && i <= 0) {
+          e.preventDefault()
+          nodes[nodes.length - 1].focus()
+        } else if (!e.shiftKey && i === nodes.length - 1) {
+          e.preventDefault()
+          nodes[0].focus()
+        }
+      }
     }
     document.addEventListener('keydown', onKey)
-    document.addEventListener('pointerdown', onPointer)
+    document.documentElement.classList.add('menu-open')
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.removeEventListener('pointerdown', onPointer)
+      document.documentElement.classList.remove('menu-open')
     }
   }, [open])
 
+  const close = () => setOpen(false)
+
   return (
-    <div className="site-menu">
-      <button
-        ref={buttonRef}
-        type="button"
-        className="icon-button site-menu__toggle"
-        aria-expanded={open}
-        aria-controls="site-menu-panel"
-        aria-label={open ? 'Close menu' : 'Open menu'}
-        onClick={() => setOpen((v) => !v)}
-      >
-        {open ? <X size={22} strokeWidth={1.8} /> : <MenuIcon size={23} strokeWidth={1.6} />}
-      </button>
-      <nav id="site-menu-panel" ref={panelRef} className={`site-menu__panel ${open ? 'is-open' : ''}`} aria-label="Guide sections" hidden={!open}>
-        <ul>
-          {items.map(({ label, icon: Icon, onSelect }) => (
-            <li key={label}>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false)
-                  onSelect()
+    <>
+      <header className={`site-header site-header--${variant}`}>
+        <div className="site-header__bar glass">
+          {variant === 'sub' ? (
+            <>
+              <a
+                className="header-back"
+                href="#/"
+                onClick={(e) => {
+                  if (onBack) {
+                    e.preventDefault()
+                    onBack()
+                  }
                 }}
               >
-                <Icon size={17} aria-hidden="true" />
-                <span>{label}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
+                <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
+                <span>{backLabel}</span>
+              </a>
+              {label && <span className="header-label">{label}</span>}
+            </>
+          ) : null}
+          <a className={`header-brand ${variant === 'sub' ? 'header-brand--desk' : ''}`} href="#/" aria-label={`CoStars ${t('event_guide')}`}>
+            <BrandMark tone="light" />
+            <span className="header-label">{t('event_guide')}</span>
+          </a>
+
+          <nav className="header-nav" aria-label={t('menu')}>
+            {navItems.map((item) => (
+              <a key={item.key} href={item.href} aria-current={item.current ? 'page' : undefined} className={item.current ? 'is-current' : ''}>
+                {item.pulse && <span className="pulse-dot" aria-hidden="true" />}
+                {item.label}
+              </a>
+            ))}
+            <LangSegments />
+          </nav>
+
+          <div className="header-actions">
+            <LangToggle />
+            <button
+              ref={buttonRef}
+              type="button"
+              className="menu-btn"
+              aria-label={open ? t('close_menu') : t('menu')}
+              aria-expanded={open}
+              aria-controls="site-menu"
+              onClick={() => setOpen((v) => !v)}
+            >
+              {open ? <X size={20} strokeWidth={1.8} aria-hidden="true" /> : <MenuGlyph />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {open && (
+        <>
+          <div className="menu-backdrop" aria-hidden="true" onClick={close} />
+          <nav id="site-menu" ref={menuRef} className="menu-panel" aria-label={t('menu')}>
+            {items.map((item) => (
+              <a
+                key={item.key}
+                href={item.href}
+                aria-current={item.current ? 'page' : undefined}
+                className={`menu-item ${item.current ? 'is-current' : ''}`}
+                onClick={(e) => {
+                  close()
+                  if (item.onSelect) {
+                    e.preventDefault()
+                    item.onSelect()
+                  }
+                }}
+              >
+                <span className={`menu-dot dot-${item.dot} ${item.pulse ? 'pulse' : ''}`} aria-hidden="true" />
+                <span className="menu-item__text">
+                  <span className="menu-item__label">{item.label}</span>
+                  {item.sub && <span className="menu-item__sub">{item.sub}</span>}
+                </span>
+                {item.current ? (
+                  <span className="menu-here">{t('here')}</span>
+                ) : (
+                  <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" className="menu-chev" />
+                )}
+              </a>
+            ))}
+          </nav>
+        </>
+      )}
+    </>
   )
 }

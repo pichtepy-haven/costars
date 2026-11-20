@@ -1,19 +1,23 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
+import { LangProvider } from './i18n.jsx'
 import {
-  applySheetContent, loadSheetContent, readCachedContent, writeCachedContent,
+  CORE_TABS, EXTRA_TABS, applySheetContent, loadSheetContent, readCachedContent, writeCachedContent,
 } from './lib/sheetContent.js'
 import './styles.css'
 
 const root = createRoot(document.getElementById('root'))
 let contentVersion = 0
 let applied = ''
+let latest = {} // last good copy of every tab
 
 const render = () =>
   root.render(
     <React.StrictMode>
-      <App contentVersion={contentVersion} />
+      <LangProvider>
+        <App contentVersion={contentVersion} />
+      </LangProvider>
     </React.StrictMode>,
   )
 
@@ -34,18 +38,34 @@ const apply = (tabs) => {
 // 1. Show the last copy of the Google Sheet this phone downloaded (if any)
 //    straight away, otherwise the content built into src/data.js.
 const cached = readCachedContent()
-if (cached) apply(cached)
+if (cached) {
+  latest = cached
+  apply(cached)
+}
 render()
 
 // 2. Fetch the latest version of the sheet and update the page if it changed.
-let lastFetch = 0
+//    Times and line-up every minute; the other tabs every 10 minutes.
+let lastCore = 0
+let lastExtra = 0
 const refresh = () => {
-  if (Date.now() - lastFetch < 60000) return
-  lastFetch = Date.now()
-  loadSheetContent()
-    .then((tabs) => {
-      if (tabs && apply(tabs)) {
-        writeCachedContent(tabs)
+  const now = Date.now()
+  const tabs = []
+  if (now - lastCore >= 60000) {
+    lastCore = now
+    tabs.push(...CORE_TABS)
+  }
+  if (now - lastExtra >= 600000) {
+    lastExtra = now
+    tabs.push(...EXTRA_TABS)
+  }
+  if (!tabs.length) return
+  loadSheetContent({ tabs })
+    .then((fresh) => {
+      if (!fresh) return
+      latest = { ...latest, ...fresh }
+      if (apply(latest)) {
+        writeCachedContent(latest)
         render()
       }
     })
