@@ -306,6 +306,12 @@ paid, left) and in the Summary tab (Promo tickets paid), and tells the admin gro
 fingerprint (SHA-256) of the code, never the code itself. Empty `promo_code` turns the promo off.
 The box's wording is in the Web texts tab (`form.promo…` rows).
 
+A second code works the same way with its own discount and its own limit: Settings →
+`promo2_code` (`NUM`), `promo2_discount` ($3, so ~~$8~~ $5) and `promo2_limit` (100), counted
+separately from the first code; `promo_hold_minutes` is shared. Customers type either code in the
+same box. /stats shows one line per code; the Summary tab's Promo tickets paid counts both. Empty
+`promo2_code` turns the second code off.
+
 Security: nothing secret is in the website. Orders, donations and check-ins only work from pages
 opened inside Telegram (Telegram signs every request and the bot checks the Staff tab).
 Ticket codes carry the bot's signature, so ticket pages cannot be guessed.

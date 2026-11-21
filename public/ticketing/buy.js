@@ -9,11 +9,11 @@
  *    its answers to Telegram (sendData) and the bot replies in the chat.
  *  • In a normal browser: the page shows the tickets and a button to open the bot.
  *
- * Promo code: while the bot offers one (Settings → promo_code, promo_discount, promo_limit), a code
- * box shows under the Standard ticket. The right code takes promo_discount off each Standard ticket.
- * The bot sells exactly promo_limit promo tickets: an unpaid promo order keeps its tickets for
- * promo_hold_minutes (the page shows until when). When none are left, the bot stops sending the
- * promo and the box disappears.
+ * Promo codes: while the bot offers one (Settings → promo_code, promo_discount, promo_limit, and
+ * promo2_… for a second code), a code box shows under the Standard ticket. Each code takes its own
+ * discount off each Standard ticket. The bot sells exactly each code's limit: an unpaid promo order
+ * keeps its tickets for promo_hold_minutes (the page shows until when). When a code has none left,
+ * the bot stops sending it; when no code is left, the box disappears.
  */
 import { apiGet, apiPost } from './api.js'
 import { botLink } from './config.js'
@@ -236,6 +236,7 @@ const state = {
   type: '',
   qty: 1, // Standard tickets in this order
   promo: '', // the promo code that was accepted ('' for none)
+  promoHash: '', // the fingerprint of that code, to find its offer
   promoText: '', // what is typed in the promo code box
   name: '',
   phone: '',
@@ -262,10 +263,23 @@ function prices() {
   const p = (state.info && state.info.prices) || { individual: 8, group: 38, symbol: '$', khrRate: 0 }
   return p
 }
-/** The promo the bot offers ({ hash, off, price, left }), or null when there is none or every promo ticket is sold. */
-const promoOffer = () => (MODE !== 'browser' && state.info && state.info.promo) || null
-/** True when a promo code was accepted and the promo is still on. */
-const promoOn = () => !!(state.promo && promoOffer())
+/**
+ * The promo codes the bot offers ([{ hash, off, price, left }], one per code), or [] when there are none
+ * or every promo ticket is sold. A bot from before the second code sends only `promo` (one code).
+ */
+function promoOffers() {
+  if (MODE === 'browser' || !state.info) return []
+  const list = Array.isArray(state.info.promos) ? state.info.promos : state.info.promo ? [state.info.promo] : []
+  return list.filter((o) => o && o.hash)
+}
+/** The offer of the promo code that was accepted, or null when none was or that promo has ended. */
+const promoOffer = () => (state.promo && promoOffers().find((o) => o.hash === state.promoHash)) || null
+/** True when a promo code was accepted and its promo is still on. */
+const promoOn = () => !!promoOffer()
+const clearPromo = () => {
+  state.promo = ''
+  state.promoHash = ''
+}
 const promoKey = (v) => String(v || '').replace(/\s+/g, '').toUpperCase()
 
 /** A Standard ticket costs less with the promo code. */
@@ -324,7 +338,7 @@ async function load() {
   if (MODE === 'browser') state.type = ''
   else if (!onSale(state.type)) state.type = onSale('INDIVIDUAL') ? 'INDIVIDUAL' : onSale('GROUP') ? 'GROUP' : ''
   // The promotion ended while the form was open: back to the normal price.
-  if (state.promo && !promoOffer()) state.promo = ''
+  if (state.promo && !promoOffer()) clearPromo()
   state.qty = Math.min(Math.max(state.qty, 1), maxQty())
   render()
   // Fetch the payment QR while the customer fills in the form, so it shows at once after ordering.
@@ -439,9 +453,10 @@ const TAG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 
 /** Under the Standard ticket price: the promo code box, or the code that was accepted. Nothing when there is no promo. */
 function promoHtml() {
+  const offers = promoOffers()
+  if (!offers.length) return ''
   const offer = promoOffer()
-  if (!offer) return ''
-  if (promoOn()) {
+  if (offer) {
     return `
       <div class="promo" id="promo">
         <p class="promo__on" role="status">${icon('check')}<span>${esc(t('promoApplied', { code: state.promo, amount: money(offer.off, prices().symbol) }))}</span>
@@ -458,7 +473,7 @@ function promoHtml() {
         <button type="button" class="btn btn--light btn--small promo__apply" id="promo-apply">${esc(T[state.lang].promoApply)}</button>
       </div>
       ${err ? `<span class="field__error" role="alert">${esc(err)}</span>`
-            : offer.left <= 20 ? `<span class="field__hint">${esc(t('promoLeft', { n: n(offer.left) }))}</span>` : ''}
+            : offers.length === 1 && offers[0].left <= 20 ? `<span class="field__hint">${esc(t('promoLeft', { n: n(offers[0].left) }))}</span>` : ''}
     </div>`
 }
 
@@ -856,7 +871,8 @@ function bindPromo() {
         if (errEl) errEl.remove()
       }
       const typed = promoKey(input.value)
-      if (typed && (await promoMatches(typed)) === true && promoKey(state.promoText) === typed) applyPromo(typed)
+      const hit = typed ? await promoMatches(typed) : false
+      if (hit && promoKey(state.promoText) === typed) applyPromo(typed, hit)
     })
     input.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return
@@ -869,7 +885,7 @@ function bindPromo() {
   const remove = $('#promo-remove')
   if (remove) {
     remove.addEventListener('click', () => {
-      state.promo = ''
+      clearPromo()
       state.promoText = ''
       tg.haptic('select')
       render()
@@ -877,13 +893,17 @@ function bindPromo() {
   }
 }
 
-/** True when the code is the bot's promo code, false when not, null when this phone can't check (the bot checks it then). */
+/**
+ * The offer of the bot's promo code that this is, false when it is none of them, null when this phone
+ * can't check (the bot checks it then).
+ */
 async function promoMatches(code) {
-  const offer = promoOffer()
-  if (!offer || !code) return false
+  const offers = promoOffers()
+  if (!offers.length || !code) return false
   try {
     const bytes = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code)))
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('') === offer.hash
+    const hash = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+    return offers.find((o) => o.hash === hash) || false
   } catch (err) {
     return null
   }
@@ -893,18 +913,20 @@ async function promoMatches(code) {
 async function tryPromo() {
   const typed = promoKey(state.promoText)
   if (!typed) return promoError(T[state.lang].promoEmpty)
-  const ok = await promoMatches(typed)
-  if (ok === false) return promoError(T[state.lang].promoBad)
-  applyPromo(typed)
+  const hit = await promoMatches(typed)
+  if (hit === false) return promoError(T[state.lang].promoBad)
+  // When this phone can't check, the first code's price is shown and the bot checks the code.
+  applyPromo(typed, hit || promoOffers()[0])
   return true
 }
 
-function applyPromo(code) {
-  if (!promoOffer()) return
+function applyPromo(code, offer) {
+  if (!offer) return
   state.promo = code
+  state.promoHash = offer.hash
   state.promoText = code
   state.errors.promo = ''
-  const left = Math.floor(Number(promoOffer().left)) || 0
+  const left = Math.floor(Number(offer.left)) || 0
   if (left >= 1 && state.qty > left) {
     state.qty = left
     toast(t('promoLeft', { n: n(left) }))
@@ -982,7 +1004,7 @@ function updateButton() {
 async function onSubmit() {
   if (state.busy || state.done) return
   // A promo code was typed but not taken yet: check it first, so nobody pays the full price by mistake.
-  if (state.type === 'INDIVIDUAL' && promoOffer() && !state.promo && promoKey(state.promoText)) {
+  if (state.type === 'INDIVIDUAL' && promoOffers().length && !state.promo && promoKey(state.promoText)) {
     if (await tryPromo()) toast(t('promoApplied', { code: state.promo, amount: money(promoOffer().off, prices().symbol) }))
     return
   }
@@ -1046,7 +1068,7 @@ async function onSubmit() {
     return render()
   }
   if (res && res.error === 'bad_promo') {
-    state.promo = ''
+    clearPromo()
     return promoError(T[state.lang].promoBad)
   }
   if (res && res.error === 'promo_left' && promoOffer()) {
@@ -1055,7 +1077,7 @@ async function onSubmit() {
     return promoError(t('promoLeft', { n: n(res.left) }))
   }
   if (res && res.error === 'promo_gone') {
-    state.promo = ''
+    clearPromo()
     await tg.showAlert(t('promoGone', { price: money(prices().individual, prices().symbol) }))
     return load()
   }
