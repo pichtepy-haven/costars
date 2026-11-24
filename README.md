@@ -55,6 +55,11 @@ happens automatically from the phone's clock.
 
 Every page has an **English / ខ្មែរ** switch (top right). The choice is remembered on the phone.
 
+Fonts (Google Fonts, `index.html` + top of `src/styles.css`): English headings and bold text in
+**Poppins**, English body text in **Cabin**; Khmer headings and bold text in **Bayon**, Khmer body
+text in **Kantumruy Pro**. The musicians silhouette (`public/images/brand/musicians.svg`) is traced
+from the high-resolution artwork, so it stays sharp at any size.
+
 Not included in the guide on purpose: venue directions, ticket sales and other pre-event
 information (see the brief). The guide is meant for use on the night. Ticket sales live on
 their own pages (section 6b).
