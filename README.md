@@ -60,6 +60,10 @@ Fonts (Google Fonts, `index.html` + top of `src/styles.css`): English headings a
 text in **Kantumruy Pro**. The musicians silhouette (`public/images/brand/musicians.svg`) is traced
 from the high-resolution artwork, so it stays sharp at any size.
 
+On phones, text uses the full width and fills each line. A title that only just misses one line
+is made slightly smaller so it fits (`src/lib/fitText.js`, at most 22% for big titles, 14% for
+small ones, never below 13px); longer titles keep their size and wrap. Desktop is unchanged.
+
 Not included in the guide on purpose: venue directions, ticket sales and other pre-event
 information (see the brief). The guide is meant for use on the night. Ticket sales live on
 their own pages (section 6b).

@@ -5,6 +5,7 @@ import { LangProvider } from './i18n.jsx'
 import {
   CORE_TABS, EXTRA_TABS, applySheetContent, loadSheetContent, readCachedContent, writeCachedContent,
 } from './lib/sheetContent.js'
+import { startFitText } from './lib/fitText.js'
 import './styles.css'
 
 const root = createRoot(document.getElementById('root'))
@@ -43,6 +44,7 @@ if (cached) {
   apply(cached)
 }
 render()
+startFitText()
 
 // 2. Fetch the latest version of the sheet and update the page if it changed.
 //    Times and line-up every minute; the other tabs every 10 minutes.

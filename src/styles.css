@@ -1422,6 +1422,24 @@ a.hero-card--live:hover .now-mini__cta { color: var(--cream); }
 .not-found h1 { margin: 0; font-size: 34px; font-weight: 800; font-family: var(--font-head); letter-spacing: -0.04em; }
 .not-found p { margin: 0; color: var(--text); }
 
+/* ============================================================== PHONES */
+/* Text uses the full width and fills each line, instead of breaking early with empty space.
+   Titles that only just miss one line are fitted by src/lib/fitText.js. */
+@media (max-width: 959.98px) {
+  .sec-title,
+  .act-hero__title { text-wrap: pretty; }
+  .act-hero__title,
+  .live-idle h1,
+  .live-idle p,
+  .hero__message,
+  .donate-cta p,
+  .footer-small { max-width: none; }
+  /* "Swipe →" sits beside the eyebrow, so the title and intro get the full width */
+  .sec-head > * { grid-column: 1 / -1; }
+  .sec-head > .eyebrow { grid-column: 1; }
+  .sec-head > .eyebrow ~ .swipe-hint { grid-column: 2; grid-row: 1; align-self: center; padding-bottom: 0; }
+}
+
 /* ============================================================ DESKTOP */
 @media (min-width: 960px) {
   html { scroll-padding-top: 100px; }
