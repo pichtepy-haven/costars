@@ -5,7 +5,7 @@ import { useT } from '../../i18n.jsx'
 import { hrefFor } from '../../lib/router.js'
 import { SectionHead, pad2 } from '../ui.jsx'
 
-const STEP_TONES = ['gold', 'crimson', 'violet']
+const STEP_TONES = ['gold', 'crimson', 'champagne']
 
 /** Numbered “where the money goes” list (home: short lines, charity page: full). */
 export function ImpactSteps({ full = false, className = '' }) {

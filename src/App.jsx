@@ -90,7 +90,7 @@ export default function App({ contentVersion = 0 }) {
   // “Live now” appears on the day of the event.
   const eventDay = ['before-start', 'live', 'ended'].includes(live.phase)
   const onStage = live.phase === 'live'
-  const actDot = { gold: 'gold', crimson: 'crimson', violet: 'violet' }
+  const actDot = { gold: 'gold', crimson: 'crimson', champagne: 'champagne' }
 
   const menuItems = [
     { key: 'home', label: t('menu_home'), sub: t('menu_home_sub'), dot: 'cream', href: hrefFor.home(), current: view === 'home' },

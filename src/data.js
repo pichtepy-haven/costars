@@ -64,7 +64,7 @@ export const welcome = {
  *  id         stable identifier used in links (act-1, act-2, act-3 …)
  *  type       'act' | 'ceremony' | 'break'
  *  start/end  24-hour clock, Cambodia time
- *  tone       acts only: 'gold' | 'crimson' | 'violet'
+ *  tone       acts only: 'gold' | 'crimson' | 'champagne'
  *  summary    one line on the act card of the home page
  *  programme  sets in running order: name, role, piece (title of the music,
  *             hidden while empty), durationMin, setlist (songs), with
@@ -204,7 +204,7 @@ export const agenda = [
     title: 'Tribute Music Performance',
     title_km: 'តន្ត្រីគោរពតារាល្បីៗ',
     icon: 'mic-vocal',
-    tone: 'violet',
+    tone: 'champagne',
     start: '19:25',
     end: '20:15',
     subtitle: 'Two live tribute sets: singers & band',
@@ -332,7 +332,7 @@ export const gestures = {
     { id: 'birth', tone: 'teal', name: 'Birth', name_km: 'កំណើត', text: 'A seed is planted and starts to grow.', text_km: 'គ្រាប់ពូជត្រូវបានដាំ ហើយចាប់ផ្តើមដុះ។' },
     { id: 'evolution', tone: 'gold', name: 'Evolution', name_km: 'វិវឌ្ឍន៍', text: 'Young leaves open, then grow strong.', text_km: 'ស្លឹកខ្ចីលាតចេញ រួចលូតលាស់រឹងមាំ។' },
     { id: 'growth', tone: 'crimson', name: 'Growth', name_km: 'ការលូតលាស់', text: 'The plant flowers and bears fruit.', text_km: 'រុក្ខជាតិចេញផ្កា និងបង្កើតផ្លែ។' },
-    { id: 'vanishing', tone: 'violet', name: 'Vanishing', name_km: 'ការរលត់', text: 'The fruit ripens and falls, and its seed begins again.', text_km: 'ផ្លែទុំហើយជ្រុះ ហើយគ្រាប់របស់វាចាប់ផ្តើមសាជាថ្មី។' },
+    { id: 'vanishing', tone: 'champagne', name: 'Vanishing', name_km: 'ការរលត់', text: 'The fruit ripens and falls, and its seed begins again.', text_km: 'ផ្លែទុំហើយជ្រុះ ហើយគ្រាប់របស់វាចាប់ផ្តើមសាជាថ្មី។' },
   ],
   items: [
     { phase: 'birth', name: 'Planting', name_km: 'ការដាំ', image: '/images/gestures/planting.jpg' },

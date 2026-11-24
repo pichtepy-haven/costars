@@ -79,7 +79,7 @@ export default function MoreForEvening({ openId, setOpenId }) {
   const panels = [
     { id: 'etiquette', icon: 'phone-off', tone: 'gold', title: t('etiquette_title'), sub: t('etiquette_sub'), body: <EtiquetteList /> },
     { id: 'help', icon: 'help', tone: 'crimson', title: t('help_title'), sub: t('help_sub'), body: <HelpContent /> },
-    { id: 'about', icon: 'star', tone: 'violet', title: t('about_title'), sub: t('about_sub'), body: <AboutContent /> },
+    { id: 'about', icon: 'star', tone: 'champagne', title: t('about_title'), sub: t('about_sub'), body: <AboutContent /> },
   ]
   return (
     <section id="help" className="section wrap reveal" aria-labelledby="more-title">

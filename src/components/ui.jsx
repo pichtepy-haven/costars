@@ -6,7 +6,7 @@ import { getIcon } from '../lib/icons.js'
 export const TONE_ICON_BG = {
   gold: 'tone-gold',
   crimson: 'tone-crimson',
-  violet: 'tone-violet',
+  champagne: 'tone-champagne',
   teal: 'tone-teal',
 }
 

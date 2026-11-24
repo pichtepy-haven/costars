@@ -2,7 +2,7 @@ import React from 'react'
 import { useT } from '../../i18n.jsx'
 import { Avatar, Chip, QuoteMark, SectionHead, initialsOf, pad2 } from '../ui.jsx'
 
-const QUOTE_COLOR = { gold: '#F5B544', crimson: '#FF5A5F', violet: '#A78BFA' }
+const QUOTE_COLOR = { gold: '#F5B544', crimson: '#FF5A5F', champagne: '#e6cfa6' }
 
 /** “Sets 01 & 05”: the sets an artist plays in, from the line-up. */
 const setsFor = (artist, act, t) => {

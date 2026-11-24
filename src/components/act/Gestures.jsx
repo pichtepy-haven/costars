@@ -5,7 +5,7 @@ import { useT } from '../../i18n.jsx'
 import { prefersReducedMotion } from '../../lib/useMedia.js'
 import { SectionHead, pad2 } from '../ui.jsx'
 
-const TONE_TEXT = { teal: 'c-teal', gold: 'c-gold', crimson: 'c-crimson', violet: 'c-violet' }
+const TONE_TEXT = { teal: 'c-teal', gold: 'c-gold', crimson: 'c-crimson', champagne: 'c-champagne' }
 
 /** Slideshow that steps through the gestures every 3 seconds. */
 function GestureShow({ items, phases }) {

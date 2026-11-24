@@ -208,7 +208,7 @@ export const toRecords = (rows) => {
 
 /* --------------------------------------------------------------- merging */
 
-const TONES = ['gold', 'crimson', 'violet']
+const TONES = ['gold', 'crimson', 'champagne']
 const TYPE_ICON = { act: 'music', ceremony: 'mic', break: 'coffee' }
 
 /** Build the schedule from the Schedule + Performers tabs. */
@@ -363,7 +363,7 @@ const buildGestures = (rows) => {
       const basePhase = base.phases.find((p) => p.name === phaseName) || {}
       phase = {
         id: `phase-${phases.length + 1}`,
-        tone: ['teal', 'gold', 'crimson', 'violet'][phases.length % 4],
+        tone: ['teal', 'gold', 'crimson', 'champagne'][phases.length % 4],
         name: phaseName,
         name_km: kmOf(row, 'phase_km', phaseName, basePhase, 'name'),
         text: text(row.phase_text, 200) || basePhase.text || '',
