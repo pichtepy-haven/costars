@@ -107,7 +107,7 @@ function TributeCards({ act: item, playingIndex, featuredId }) {
           {p.setlist?.length > 0 && (
             <div className="setlist">
               <span className={`setlist__title c-${item.tone}`}>{t('setlist')}</span>
-              <ol>
+              <ol style={{ '--setlist-rows': Math.ceil(p.setlist.length / 2) }}>
                 {p.setlist.map((song, n) => (
                   <li key={`${song}-${n}`}>
                     <span className="display">{pad2(n + 1)}</span>
