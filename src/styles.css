@@ -1248,9 +1248,14 @@ a.hero-card--live:hover .now-mini__cta { color: var(--cream); }
 .tribute-chip--gold { background: rgba(245, 181, 68, 0.14); color: var(--gold-soft); }
 .setlist { margin-left: 36px; padding: 12px 14px; border-radius: 16px; background: rgba(252, 249, 242, 0.04); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
 .setlist__title { font-size: 11.5px; font-weight: 700; font-family: var(--font-head); letter-spacing: 0.14em; text-transform: uppercase; }
-.setlist ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.setlist li { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text-light); }
+/* two columns, filled top to bottom (01–05 left, 06–10 right) */
+.setlist ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--setlist-rows, 5), auto); grid-auto-flow: column; gap: 8px 16px; }
+.setlist li { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; color: var(--text-light); min-width: 0; }
 .setlist li .display { width: 18px; font-size: 11px; font-weight: 700; font-family: var(--font-head); color: var(--dim); }
+@media (max-width: 480px) {
+  .setlist { margin-left: 0; }
+  .setlist li { font-size: 13px; }
+}
 
 /* artists */
 .featured-artist { border-radius: 28px; border: 1px solid; overflow: hidden; display: flex; flex-direction: column; background: var(--surface); }
