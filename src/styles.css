@@ -1251,7 +1251,7 @@ a.hero-card--live:hover .now-mini__cta { color: var(--cream); }
 /* two columns, filled top to bottom (01–05 left, 06–10 right) */
 .setlist ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(var(--setlist-rows, 5), auto); grid-auto-flow: column; gap: 8px 16px; }
 .setlist li { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; color: var(--text-light); min-width: 0; }
-.setlist li .display { width: 18px; font-size: 11px; font-weight: 700; font-family: var(--font-head); color: var(--dim); }
+.setlist li .display { flex: none; width: 20px; font-size: 11px; font-weight: 700; font-family: var(--font-head); color: var(--dim); }
 @media (max-width: 480px) {
   .setlist { margin-left: 0; }
   .setlist li { font-size: 13px; }
