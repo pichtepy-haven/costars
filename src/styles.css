@@ -1298,7 +1298,7 @@ a.hero-card--live:hover .now-mini__cta { color: var(--cream); }
 .artist-role { position: absolute; left: 12px; bottom: 12px; height: 28px; padding: 0 10px; border-radius: 999px; background: rgba(11, 7, 8, 0.7); display: flex; align-items: center; font-size: 12px; font-weight: 600; font-family: var(--font-head); }
 /* artist with a photo: the photo fills the top of the card */
 .artist-portrait--photo { height: 320px; }
-.artist-portrait__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 25%; }
+.artist-portrait__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 10%; }
 .artist-portrait--photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 7, 8, 0) 55%, rgba(11, 7, 8, 0.8) 100%); pointer-events: none; }
 .artist-portrait--photo .artist-role { z-index: 1; }
 .artist-card__body { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
