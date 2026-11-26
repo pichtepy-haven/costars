@@ -1,10 +1,9 @@
 import React from 'react'
-import { BellOff, ChevronDown, ChevronRight, Coffee } from 'lucide-react'
+import { ChevronDown, ChevronRight, Coffee } from 'lucide-react'
 import { agenda } from '../../data.js'
 import { useT } from '../../i18n.jsx'
-import { durationOf, formatClock, formatDuration, formatPeriod, formatRange, formatTime } from '../../lib/time.js'
+import { durationOf, formatClock, formatDuration, formatPeriod } from '../../lib/time.js'
 import { hrefFor } from '../../lib/router.js'
-import { useIsDesktop } from '../../lib/useMedia.js'
 import { Note, SectionHead } from '../ui.jsx'
 
 const NowBadge = () => {
@@ -109,107 +108,16 @@ function MobileRow({ item, isNow, open, onToggle }) {
   )
 }
 
-const SEG_CLASS = { ceremony: 'seg--ceremony', break: 'seg--break' }
-
-/** Desktop: a bar of the whole evening, sized by duration. */
-function TimelineBar({ live }) {
-  const { loc, act, lang } = useT()
-  const first = agenda[0]
-  const last = agenda[agenda.length - 1]
-  if (!first || !last) return null
-  const label = agenda.map((i) => `${formatTime(i.start, lang)} ${loc(i, 'title')}`).join(', ')
-  return (
-    <div className="sched-bar" role="img" aria-label={label}>
-      <div className="sched-bar__track">
-        {agenda.map((item) => {
-          const now = live.phase === 'live' && live.currentId === item.id
-          const pct = now ? Math.min(100, Math.max(0, ((live.minutes - toMin(item.start)) / durationOf(item)) * 100)) : 0
-          return (
-            <span
-              key={item.id}
-              className={`seg ${item.type === 'act' ? `bg-${item.tone}` : SEG_CLASS[item.type] || ''} ${now ? 'is-now' : ''}`}
-              style={{ flex: durationOf(item) }}
-            >
-              {now && <span className="seg__fill" style={{ width: `${pct}%` }} />}
-            </span>
-          )
-        })}
-      </div>
-      <div className="sched-bar__labels" aria-hidden="true">
-        {agenda.map((item) => (
-          <span key={item.id} style={{ flex: durationOf(item) }} className={item.type === 'act' ? `c-${item.tone}` : ''}>
-            <strong>{formatClock(item.start)}</strong>
-            <span>{item.type === 'act' ? act(item.act) : ''}</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-const toMin = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3))
-
-function DesktopCard({ item, isNow }) {
-  const { loc, act, lang } = useT()
-  const head = (
-    <>
-      <span className={`display sched-tile__time ${item.type === 'act' ? `c-${item.tone}` : item.type === 'break' ? 'is-muted' : ''}`}>
-        {formatRange(item, lang)}
-      </span>
-      <span className="sched-tile__title">
-        {item.type === 'act' ? `${act(item.act)} · ` : ''}
-        {loc(item, 'title')}
-      </span>
-      <span className="sched-sub">{metaLine(item, loc, lang)}</span>
-      {isNow && <NowBadge />}
-    </>
-  )
-  if (item.type === 'act') {
-    return (
-      <li className="sched-tile-li">
-        <a className={`sched-tile sched-tile--act border-${item.tone} ${isNow ? 'is-now' : ''}`} href={hrefFor.act(item.id)}>
-          {head}
-          <span className={`sched-tile__more c-${item.tone}`}>
-            <ChevronRight size={18} strokeWidth={1.8} aria-hidden="true" />
-          </span>
-        </a>
-      </li>
-    )
-  }
-  return (
-    <li className={`sched-tile ${item.type === 'break' ? 'sched-tile--break' : ''} ${isNow ? 'is-now' : ''}`}>
-      {head}
-      {item.type !== 'break' && loc(item, 'description') && <span className="sched-tile__desc">{loc(item, 'description')}</span>}
-      {item.host?.name && <span className="sched-tile__desc">{item.host.name}{item.host.role ? ` · ${item.host.role}` : ''}</span>}
-      {item.type !== 'break' && loc(item, 'note') && <span className="sched-tile__note">{loc(item, 'note')}</span>}
-    </li>
-  )
-}
-
+/** The evening as one timeline, the same on phones and desktop. */
 export default function Schedule({ live, openId, setOpenId }) {
   const { t } = useT()
-  const desktop = useIsDesktop()
   const isNow = (item) => live.phase === 'live' && live.currentId === item.id
   return (
     <section id="schedule" className="section wrap reveal" aria-labelledby="schedule-title">
-      <SectionHead id="schedule-title" eyebrow={t('schedule_eyebrow')} title={t('schedule_title')} intro={desktop ? '' : t('schedule_hint')} />
-      {desktop ? (
-        <>
-          <TimelineBar live={live} />
-          <ol className="sched-grid">
-            {agenda.map((item) => (
-              <DesktopCard key={item.id} item={item} isNow={isNow(item)} />
-            ))}
-          </ol>
-          <div className="note note--wide">
-            <BellOff size={18} strokeWidth={1.8} aria-hidden="true" />
-            <span>{t('silence_phones')}</span>
-          </div>
-        </>
-      ) : (
-        <div className="sched-wrap">
-          <div className="sched__rail rail" aria-hidden="true" />
-          <ol className="sched">
+      <SectionHead id="schedule-title" eyebrow={t('schedule_eyebrow')} title={t('schedule_title')} intro={t('schedule_hint')} />
+      <div className="sched-wrap">
+        <div className="sched__rail rail" aria-hidden="true" />
+        <ol className="sched">
           {agenda.map((item) => (
             <MobileRow
               key={item.id}
@@ -219,9 +127,8 @@ export default function Schedule({ live, openId, setOpenId }) {
               onToggle={() => setOpenId(openId === item.id ? '' : item.id)}
             />
           ))}
-          </ol>
-        </div>
-      )}
+        </ol>
+      </div>
     </section>
   )
 }
