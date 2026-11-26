@@ -79,8 +79,12 @@ function ArtistCard({ artist, act }) {
   const sets = loc(artist, 'sets') || setsFor(artist, act, t)
   return (
     <article className={`artist-card border-${act.tone}`}>
-      <div className={`artist-portrait artist-portrait--${act.tone}`}>
-        <Avatar name={artist.name} initials={artist.initials} photo={artist.photo} size={100} className={`avatar-ring--${act.tone} avatar-ring--glow`} />
+      <div className={`artist-portrait artist-portrait--${act.tone} ${artist.photo ? 'artist-portrait--photo' : ''}`}>
+        {artist.photo ? (
+          <img className="artist-portrait__img" src={artist.photo} alt={artist.photoAlt || artist.name} loading="lazy" />
+        ) : (
+          <Avatar name={artist.name} initials={artist.initials} size={100} className={`avatar-ring--${act.tone} avatar-ring--glow`} />
+        )}
         {loc(artist, 'role') && <span className={`artist-role c-${act.tone}-soft`}>{loc(artist, 'role')}</span>}
       </div>
       <div className="artist-card__body">
