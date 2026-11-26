@@ -1619,10 +1619,11 @@ a.hero-card--live:hover .now-mini__cta { color: var(--cream); }
   .piano { margin-top: 56px; }
   .piano__keys { height: 96px; }
 
-  .dance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr)); gap: 24px; align-items: start; }
+  .dance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr)); gap: 24px; align-items: stretch; }
   .dance-card { border-radius: 32px; }
   .dance-card__media img { height: 320px; }
-  .dance-card__body { padding: 24px 28px 28px; gap: 14px; }
+  .dance-card__body { padding: 24px 28px 28px; gap: 14px; flex: 1; }
+  .dance-card__body .moments { margin-top: auto; }
   .dance-card__title { font-size: 34px; }
   .dance-card__body > p { font-size: 15.5px; }
   .moments ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
