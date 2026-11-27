@@ -18,12 +18,14 @@
  *   name:      ticket holder (Latin or Khmer)
  *   ticketId:  '0002-1'   orderId: 'CS-0002'   guestNo: 1
  *   status:    'VALID' | 'CHECKED_IN'    checkedInAt: '16:42' (optional)
+ *   type:      'INDIVIDUAL' | 'GROUP' | 'GUEST' (GUEST: Distinguished Guest / Special Invitation, guest-art.js)
  *   event: { ymd: '2026-12-05', dateLabel, timeLabel, venue, venueArea }
  * }
  * Fonts: Poppins Bold (name) and Cabin 400/500/700 (the rest). Khmer falls back to Kantumruy Pro.
  */
 import { encodeQR } from './qr.js'
 import { CABIN, EXTRA, POPPINS, TICKET_OUTLINE } from './art.js'
+import { GUEST_BAND, GUEST_LABEL, GUEST_START } from './guest-art.js'
 
 export const TICKET_W = 640
 export const TICKET_H = 1180
@@ -245,6 +247,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   const W = TICKET_W
   const H = TICKET_H
   const checked = t.status === 'CHECKED_IN'
+  const guest = t.type === 'GUEST'
 
   // Holder name: one line, or two for long names, centred on the design's line.
   const fit = fitName(String(t.name || 'Guest').trim() || 'Guest')
@@ -278,7 +281,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     <text x="${CX}" y="${STATUS.base}" text-anchor="middle" font-family="${CABIN_FONT}" font-weight="700" font-size="${STATUS.size}" fill="#FFFFFF">${esc(statusText)}</text>`
 
   // Event Date and Event Venue, inside the beige boxes.
-  const dateValue = fitLine(dateLine(ev), 'regular', DATE.size, BOX.maxW, X(40))
+  const dateValue = fitLine(dateLine(guest ? { ...ev, timeLabel: GUEST_START } : ev), 'regular', DATE.size, BOX.maxW, X(40))
   const venueLines = [ev.venue, ev.venueArea].filter(Boolean).map((line) => fitLine(line, 'medium', VENUE.size, BOX.maxW, X(36)))
   const head = (y, text) => `<text x="${BOX.x}" y="${y}" font-family="${CABIN_FONT}" font-weight="700" font-size="${HEAD.size}" letter-spacing="${n2(HEAD.track * HEAD.size)}" fill="${INK}">${text}</text>`
   const details = `
@@ -286,6 +289,10 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
     <text x="${BOX.x}" y="${DATE.value}" font-family="${fontFor(dateValue.text, CABIN_FONT)}" font-weight="400" font-size="${n2(dateValue.size)}" fill="${INK}">${esc(dateValue.text)}</text>
     ${head(VENUE.head, 'Event Venue')}
     ${venueLines.map((l, i) => `<text x="${BOX.x}" y="${VENUE.lines[i]}" font-family="${fontFor(l.text, CABIN_FONT)}" font-weight="500" font-size="${n2(l.size)}" fill="${INK}">${esc(l.text)}</text>`).join('')}`
+
+  // Special guests: Distinguished Guest and the red Special Invitation ribbon over the normal labels.
+  const strip = (s) => `<image x="${X(s.x)}" y="${Y(s.y)}" width="${X(s.w)}" height="${Y(s.h)}" preserveAspectRatio="none" href="${s.href}"/>`
+  const guestArt = guest ? strip(GUEST_LABEL) + strip(GUEST_BAND) : ''
 
   // With Sincere Appreciation.
   const note = `
@@ -297,6 +304,7 @@ export function buildTicketSvg(t, { scale = 1, idPrefix = 'cs', transparent = fa
   <defs><clipPath id="${idPrefix}-outline"><path d="${TICKET_OUTLINE}"/></clipPath></defs>
   ${transparent ? '' : `<rect width="${W}" height="${H}" fill="#FFFFFF"/>`}
   ${background ? `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" href="${esc(background)}" clip-path="url(#${idPrefix}-outline)"/>` : ''}
+  ${guestArt}
   ${nameSvg}
   ${qrSvg}
   ${code}
